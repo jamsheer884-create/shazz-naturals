@@ -101,16 +101,34 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// ─── Multer (Image Uploads) ───────────────────────────────────────────────────
-const uploadDir = path.join(__dirname, 'uploads', 'images');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+// ─── Image Storage (Cloudinary in production, local in dev) ──────────────────
+let storageEngine, getImageUrl;
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename:    (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'))
-});
+if (process.env.CLOUDINARY_CLOUD_NAME) {
+  const cloudinary = require('cloudinary').v2;
+  const { CloudinaryStorage } = require('multer-storage-cloudinary');
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  storageEngine = new CloudinaryStorage({
+    cloudinary,
+    params: { folder: 'shazz-naturals', allowed_formats: ['jpg','jpeg','png','gif','webp'] },
+  });
+  getImageUrl = (file) => file.path;
+} else {
+  const uploadDir = path.join(__dirname, 'uploads', 'images');
+  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+  storageEngine = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename:    (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'))
+  });
+  getImageUrl = (file) => '/uploads/images/' + file.filename;
+}
+
 const upload = multer({
-  storage,
+  storage: storageEngine,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (/\.(jpe?g|png|gif|webp)$/i.test(file.originalname)) cb(null, true);
@@ -196,7 +214,7 @@ app.post('/api/products', requireAdmin, upload.single('image'), async (req, res)
       howToUse:      req.body.howToUse || '',
       benefits:      (req.body.benefits || '').split('\n').map(b => b.trim()).filter(Boolean),
       weight:        req.body.weight || '',
-      image:         req.file ? '/uploads/images/' + req.file.filename : '/images/placeholder.jpg',
+      image:         req.file ? getImageUrl(req.file) : '/images/placeholder.jpg',
       inStock:       req.body.inStock !== 'false',
       featured:      req.body.featured === 'true',
       badge:         req.body.badge || '',
@@ -222,7 +240,7 @@ app.put('/api/products/:id', requireAdmin, async (req, res) => {
 app.post('/api/products/:id/image', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
-    const product = await Product.findByIdAndUpdate(req.params.id, { image: '/uploads/images/' + req.file.filename }, { new: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, { image: getImageUrl(req.file) }, { new: true });
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json({ success: true, image: product.image });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -255,7 +273,7 @@ app.put('/api/settings', requireAdmin, async (req, res) => {
 app.post('/api/settings/logo', requireAdmin, upload.single('logo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
-    const s = await Settings.findOneAndUpdate({ key: 'main' }, { logo: '/uploads/images/' + req.file.filename }, { new: true, upsert: true });
+    const s = await Settings.findOneAndUpdate({ key: 'main' }, { logo: getImageUrl(req.file) }, { new: true, upsert: true });
     res.json({ success: true, logo: s.logo });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -263,7 +281,7 @@ app.post('/api/settings/logo', requireAdmin, upload.single('logo'), async (req, 
 app.post('/api/settings/hero-image', requireAdmin, upload.single('heroImage'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
-    const s = await Settings.findOneAndUpdate({ key: 'main' }, { heroImage: '/uploads/images/' + req.file.filename }, { new: true, upsert: true });
+    const s = await Settings.findOneAndUpdate({ key: 'main' }, { heroImage: getImageUrl(req.file) }, { new: true, upsert: true });
     res.json({ success: true, heroImage: s.heroImage });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
