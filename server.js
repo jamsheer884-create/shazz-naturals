@@ -81,6 +81,7 @@ const SettingsSchema = new mongoose.Schema({
   youtube:           { type: String, default: '' },
   freeShippingAbove: { type: Number, default: 500 },
   shippingCharge:    { type: Number, default: 60 },
+  categoryImages:    { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
 
 const Product  = mongoose.model('Product',  ProductSchema);
@@ -278,6 +279,19 @@ app.post('/api/settings/logo', requireAdmin, upload.single('logo'), async (req, 
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     const s = await Settings.findOneAndUpdate({ key: 'main' }, { logo: getImageUrl(req.file) }, { new: true, upsert: true });
     res.json({ success: true, logo: s.logo });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/settings/category-image/:key', requireAdmin, upload.single('categoryImage'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+    const key = req.params.key;
+    const url = getImageUrl(req.file);
+    const s = await Settings.findOne({ key: 'main' });
+    const categoryImages = s ? (s.categoryImages || {}) : {};
+    categoryImages[key] = url;
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categoryImages } }, { new: true, upsert: true });
+    res.json({ success: true, key, url });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

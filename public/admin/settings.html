@@ -94,6 +94,18 @@
         </div>
       </div>
 
+      <!-- Category Images -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-th"></i> Category Images <span style="font-size:0.8rem;font-weight:400;color:#888">(homepage category section)</span></h2></div>
+        <div class="adm-card-body">
+          <p style="font-size:0.85rem;color:#666;margin-bottom:20px">Upload a picture for each category. It will replace the emoji icon on the homepage.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
+            <div id="cat-upload-list"></div>
+          </div>
+          <div id="cat-upload-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:0"></div>
+        </div>
+      </div>
+
       <!-- Hero Banner Text -->
       <div class="adm-card">
         <div class="adm-card-header"><h2><i class="fa fa-edit"></i> Hero Banner Text</h2></div>
@@ -218,6 +230,7 @@
     document.getElementById('s-hero-line1').value = s.heroLine1 || '';
     document.getElementById('s-hero-line2').value = s.heroLine2 || '';
     document.getElementById('s-hero-line3').value = s.heroLine3 || '';
+    buildCategoryGrid(s.categoryImages || {});
   }
 
   async function uploadLogo(e) {
@@ -233,6 +246,54 @@
       showAlert('Logo updated successfully! ✅', 'success');
     } else {
       showAlert('Logo upload failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  }
+
+  const CATEGORIES = [
+    {key:'face-care',     label:'Face Care',       emoji:'✨'},
+    {key:'lip-care',      label:'Lip Care',         emoji:'💋'},
+    {key:'hair-care',     label:'Hair Care',        emoji:'💆'},
+    {key:'natural-oils',  label:'Natural Oils',     emoji:'🫙'},
+    {key:'soaps',         label:'Soaps',            emoji:'🧼'},
+    {key:'henna-mehndi',  label:'Henna & Mehndi',  emoji:'🌿'},
+    {key:'herbal-powders',label:'Herbal Powders',   emoji:'🪴'},
+    {key:'eye-care',      label:'Eye Care',         emoji:'👁'},
+    {key:'fragrances',    label:'Fragrances',       emoji:'🌸'},
+    {key:'soap-making',   label:'Soap Making',      emoji:'🎨'},
+  ];
+
+  function buildCategoryGrid(categoryImages) {
+    const grid = document.getElementById('cat-upload-grid');
+    grid.innerHTML = CATEGORIES.map(c => {
+      const img = categoryImages?.[c.key];
+      return `
+        <div style="border:1px solid #e0e0e0;border-radius:12px;padding:14px;text-align:center">
+          <div id="cat-prev-${c.key}" style="width:70px;height:70px;margin:0 auto 10px;border-radius:10px;overflow:hidden;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:2rem">
+            ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover"/>` : c.emoji}
+          </div>
+          <div style="font-size:0.85rem;font-weight:600;margin-bottom:8px">${c.label}</div>
+          <label class="adm-btn adm-btn-secondary adm-btn-sm" style="cursor:pointer;font-size:0.78rem">
+            <i class="fa fa-upload"></i> Upload
+            <input type="file" accept="image/*" style="display:none" onchange="uploadCategoryImage('${c.key}', event)"/>
+          </label>
+        </div>`;
+    }).join('');
+  }
+
+  async function uploadCategoryImage(key, e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('categoryImage', file);
+    showAlert('Uploading...', 'info');
+    const res = await fetch('/api/settings/category-image/' + key, {method:'POST', body: fd});
+    const data = await res.json();
+    if (data.success) {
+      const prev = document.getElementById('cat-prev-' + key);
+      if (prev) prev.innerHTML = `<img src="${data.url}" style="width:100%;height:100%;object-fit:cover"/>`;
+      showAlert('Category image updated! ✅', 'success');
+    } else {
+      showAlert('Upload failed: ' + (data.error || 'Unknown'), 'error');
     }
   }
 

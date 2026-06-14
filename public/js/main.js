@@ -27,6 +27,14 @@ function applySettingsToPage(s) {
   if (s.heroLine1) { const el = document.getElementById('hero-line1'); if (el) el.textContent = s.heroLine1; }
   if (s.heroLine2) { const el = document.getElementById('hero-line2'); if (el) el.textContent = s.heroLine2; }
   if (s.heroLine3) { const el = document.getElementById('hero-line3'); if (el) el.textContent = s.heroLine3; }
+  // Update category images
+  if (s.categoryImages) {
+    Object.entries(s.categoryImages).forEach(([key, url]) => {
+      if (!url) return;
+      const el = document.getElementById('cat-icon-' + key);
+      if (el) el.innerHTML = `<img src="${url}" style="width:64px;height:64px;object-fit:cover;border-radius:12px"/>`;
+    });
+  }
   // Update hero banner image (separate from logo)
   if (s.heroImage) {
     const img = document.getElementById('hero-image-img');
