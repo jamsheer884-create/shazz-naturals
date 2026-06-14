@@ -42,6 +42,13 @@ function applySettingsToPage(s) {
     if (img) { img.src = s.heroImage; img.style.display = 'block'; }
     if (placeholder) placeholder.style.display = 'none';
   }
+  // Update about section image
+  if (s.aboutImage) {
+    const img = document.getElementById('about-image-img');
+    const placeholder = document.getElementById('about-img-placeholder');
+    if (img) { img.src = s.aboutImage; img.style.display = 'block'; }
+    if (placeholder) placeholder.style.display = 'none';
+  }
   // Update contact details if elements exist
   const emailEls = document.querySelectorAll('#contact-email, #footer-email');
   emailEls.forEach(el => { if (s.email) el.textContent = s.email; });

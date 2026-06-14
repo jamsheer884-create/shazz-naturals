@@ -71,6 +71,7 @@ const SettingsSchema = new mongoose.Schema({
   tagline:           { type: String, default: 'Pure Nature. Pure Kerala. Pure You.' },
   logo:              { type: String, default: '/images/logo.svg' },
   heroImage:         { type: String, default: '' },
+  aboutImage:        { type: String, default: '' },
   phone:             { type: String, default: '+91 79023 02884' },
   whatsapp:          { type: String, default: '917902302884' },
   email:             { type: String, default: 'shazznaturals@gmail.com' },
@@ -300,6 +301,14 @@ app.post('/api/settings/hero-image', requireAdmin, upload.single('heroImage'), a
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     const s = await Settings.findOneAndUpdate({ key: 'main' }, { heroImage: getImageUrl(req.file) }, { new: true, upsert: true });
     res.json({ success: true, heroImage: s.heroImage });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/settings/about-image', requireAdmin, upload.single('aboutImage'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+    const s = await Settings.findOneAndUpdate({ key: 'main' }, { aboutImage: getImageUrl(req.file) }, { new: true, upsert: true });
+    res.json({ success: true, aboutImage: s.aboutImage });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

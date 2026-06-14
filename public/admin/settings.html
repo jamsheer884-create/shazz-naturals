@@ -73,6 +73,27 @@
         </div>
       </div>
 
+      <!-- About Section Image -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-leaf"></i> About Section Image <span style="font-size:0.8rem;font-weight:400;color:#888">(green frame on homepage)</span></h2></div>
+        <div class="adm-card-body">
+          <div class="settings-section">
+            <div class="logo-preview-wrap">
+              <div class="logo-preview" style="width:120px;height:120px;border-radius:12px;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">
+                <img id="about-image-preview" src="" alt="About Image" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<span style=font-size:2rem>🌴</span>'"/>
+              </div>
+              <div>
+                <p style="font-size:0.85rem;color:#666;margin-bottom:10px">Fills the green area in the "Born from Kerala's Natural Abundance" section.<br>Recommended: portrait or square image, min 400x400px. JPG or PNG.</p>
+                <label class="adm-btn adm-btn-secondary" style="cursor:pointer">
+                  <i class="fa fa-upload"></i> Upload About Image
+                  <input type="file" accept="image/*" style="display:none" onchange="uploadAboutImage(event)"/>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Contact & Business Info -->
       <div class="adm-card">
         <div class="adm-card-header"><h2><i class="fa fa-info-circle"></i> Business Information</h2></div>
@@ -274,6 +295,7 @@
     const s = await fetch('/api/settings').then(r => r.json());
     document.getElementById('logo-preview-img').src = s.logo || '';
     if (s.heroImage) document.getElementById('hero-image-preview').src = s.heroImage;
+    if (s.aboutImage) document.getElementById('about-image-preview').src = s.aboutImage;
     document.getElementById('s-name').value = s.siteName || '';
     document.getElementById('s-tagline').value = s.tagline || '';
     document.getElementById('s-about').value = s.aboutUs || '';
@@ -327,6 +349,22 @@
       showAlert('Category image updated! ✅', 'success');
     } else {
       showAlert('Upload failed: ' + (data.error || 'Unknown'), 'error');
+    }
+  }
+
+  async function uploadAboutImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('aboutImage', file);
+    showAlert('Uploading about image...', 'info');
+    const res = await fetch('/api/settings/about-image', {method:'POST', body: fd});
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('about-image-preview').src = data.aboutImage + '?t=' + Date.now();
+      showAlert('About image updated successfully! ✅', 'success');
+    } else {
+      showAlert('Upload failed: ' + (data.error || 'Unknown error'), 'error');
     }
   }
 
