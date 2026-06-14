@@ -375,9 +375,11 @@
 
     let res;
     if (editingId) {
-      // For edit, use JSON (no new image) or FormData (with image)
+      // Upload image first (only once) if a new image was selected
       if (imageFile) {
-        res = await fetch('/api/products/' + editingId + '/image', {method:'POST', body: new FormData((() => {const f = new FormData(); f.append('image', imageFile); return f;})())});
+        const imgFd = new FormData();
+        imgFd.append('image', imageFile);
+        await fetch('/api/products/' + editingId + '/image', {method:'POST', body: imgFd});
       }
       // Update product data
       const body = {
@@ -392,11 +394,6 @@
         inStock: document.getElementById('f-instock').checked,
         featured: document.getElementById('f-featured').checked
       };
-      if (imageFile) {
-        const imgFd = new FormData();
-        imgFd.append('image', imageFile);
-        await fetch('/api/products/' + editingId + '/image', {method:'POST', body: imgFd});
-      }
       res = await fetch('/api/products/' + editingId, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
     } else {
       res = await fetch('/api/products', {method:'POST', body: fd});
