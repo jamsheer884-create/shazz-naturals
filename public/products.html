@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products – Shazz Natural's</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+<div id="header">
+  <div class="header-top">
+    🌿 Free shipping on orders above ₹500 &nbsp;|&nbsp; <a href="https://wa.me/917902302884">WhatsApp: +91 79023 02884</a>
+  </div>
+  <nav>
+    <div class="navbar">
+      <a href="/" class="nav-logo">
+        <img class="nav-logo-svg" src="/images/shazz-logo.png" alt="Shazz Natural's" style="object-fit:contain"/>
+        <div class="nav-logo-text">
+          <div class="brand-name">Shazz Natural's</div>
+          <div class="brand-sub">From God's Own Country</div>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/products.html" class="active">Products</a></li>
+        <li><a href="/products.html?category=Face Care">Face Care</a></li>
+        <li><a href="/products.html?category=Hair Care">Hair Care</a></li>
+        <li><a href="/#about">About</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/dashboard.html" title="Account"><i class="fa fa-user"></i></a>
+        <a href="/cart.html" title="Cart" style="position:relative">
+          <i class="fa fa-shopping-bag"></i>
+          <span class="cart-badge" id="cart-count" style="display:none">0</span>
+        </a>
+        <div class="hamburger" onclick="document.getElementById('mobile-nav').classList.add('open')">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</div>
+
+<div class="mobile-nav" id="mobile-nav" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mobile-nav-panel">
+    <div class="mobile-nav-header"><strong>Shazz Natural's</strong><button class="mobile-nav-close" onclick="document.getElementById('mobile-nav').classList.remove('open')">✕</button></div>
+    <div class="mobile-nav-links">
+      <a href="/">🏠 Home</a><a href="/products.html">🛍 All Products</a>
+      <a href="/products.html?category=Face Care">✨ Face Care</a>
+      <a href="/products.html?category=Hair Care">💆 Hair Care</a>
+      <a href="/login.html">👤 Login</a><a href="/cart.html">🛒 Cart</a>
+    </div>
+  </div>
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+  <h1>Our Products</h1>
+  <p>Natural beauty products handcrafted in Kerala</p>
+  <div class="breadcrumb"><a href="/">Home</a> › Products</div>
+</div>
+
+<!-- Products Layout -->
+<section class="section section-cream">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:240px 1fr;gap:28px;align-items:start">
+
+      <!-- Sidebar Filters -->
+      <div style="background:white;border-radius:16px;padding:24px;border:1px solid #ddd2ba;position:sticky;top:100px;box-shadow:0 4px 20px rgba(0,0,0,0.05)">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#1b5e20;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #ddd2ba">
+          🔍 Filter Products
+        </h3>
+
+        <!-- Search -->
+        <div class="form-group">
+          <label>Search</label>
+          <input type="text" id="search-input" placeholder="Search products..." style="border-radius:50px">
+        </div>
+
+        <!-- Categories -->
+        <div style="margin-bottom:20px">
+          <h4 style="font-size:0.82rem;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Categories</h4>
+          <div id="category-filters">
+            <button class="cat-filter-btn active" data-cat="all" onclick="filterByCategory('all', this)">
+              <span>All Products</span> <span class="cat-count" id="count-all"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sort -->
+        <div class="form-group">
+          <label>Sort By</label>
+          <select id="sort-select" onchange="applySort()" style="border-radius:50px">
+            <option value="default">Default</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Best Rated</option>
+            <option value="name">Name A-Z</option>
+          </select>
+        </div>
+
+        <!-- Price Range -->
+        <div style="margin-bottom:20px">
+          <h4 style="font-size:0.82rem;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Price Range</h4>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="min-price" placeholder="Min ₹" style="width:50%;padding:8px 12px;border:2px solid #ddd2ba;border-radius:50px;font-size:0.82rem;outline:none">
+            <input type="number" id="max-price" placeholder="Max ₹" style="width:50%;padding:8px 12px;border:2px solid #ddd2ba;border-radius:50px;font-size:0.82rem;outline:none">
+          </div>
+          <button onclick="applyPriceFilter()" class="btn btn-outline btn-sm" style="margin-top:8px;width:100%">Apply</button>
+        </div>
+
+        <!-- In Stock only -->
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="instock-only" onchange="renderProducts()" style="width:auto">
+          <label for="instock-only" style="font-size:0.85rem;font-weight:600;cursor:pointer">In Stock Only</label>
+        </div>
+
+        <button onclick="clearFilters()" class="btn btn-outline btn-sm" style="margin-top:16px;width:100%">
+          <i class="fa fa-times"></i> Clear Filters
+        </button>
+      </div>
+
+      <!-- Products Area -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div style="font-size:0.9rem;color:#777" id="results-count"></div>
+          <div style="display:flex;gap:8px">
+            <button onclick="setView('grid')" id="view-grid" style="padding:8px 12px;border:2px solid #ddd2ba;border-radius:8px;background:white;cursor:pointer;font-size:1rem" title="Grid View">
+              <i class="fa fa-th"></i>
+            </button>
+            <button onclick="setView('list')" id="view-list" style="padding:8px 12px;border:2px solid #ddd2ba;border-radius:8px;background:white;cursor:pointer;font-size:1rem" title="List View">
+              <i class="fa fa-list"></i>
+            </button>
+          </div>
+        </div>
+        <div class="products-grid" id="products-grid"></div>
+        <div id="no-results" class="hidden" style="text-align:center;padding:60px 20px;background:white;border-radius:16px">
+          <div style="font-size:4rem;margin-bottom:12px">🌿</div>
+          <h3 style="color:#1b5e20;margin-bottom:8px">No products found</h3>
+          <p style="color:#777">Try a different search or category.</p>
+          <button onclick="clearFilters()" class="btn btn-primary" style="margin-top:16px">Show All Products</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer style="background:linear-gradient(135deg,#0a2f0a,#1a1a1a);color:rgba(255,255,255,0.7);text-align:center;padding:24px">
+  © 2024 Shazz Natural's – Kerala, India &nbsp;|&nbsp;
+  <a href="https://wa.me/917902302884" style="color:#f0a800">WhatsApp: +91 79023 02884</a>
+</footer>
+
+<a href="https://wa.me/917902302884" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/main.js"></script>
+<script>
+  let allProducts = [];
+  let currentCat = 'all';
+  let currentSort = 'default';
+  let currentView = 'grid';
+  let searchQuery = '';
+  let minPrice = null, maxPrice = null;
+
+  const CATEGORIES = ['Face Care','Lip Care','Hair Care','Natural Oils','Soaps','Henna & Mehndi','Herbal Powders','Eye Care','Fragrances','Soap Making'];
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadSettings();
+    updateCartBadge();
+
+    // Check URL params
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get('category');
+    const q = params.get('q');
+    if (q) { document.getElementById('search-input').value = q; searchQuery = q; }
+
+    // Build category filters
+    const filterContainer = document.getElementById('category-filters');
+    filterContainer.innerHTML = `<button class="cat-filter-btn ${!cat ? 'active' : ''}" data-cat="all" onclick="filterByCategory('all', this)"><span>All Products</span></button>`;
+    CATEGORIES.forEach(c => {
+      filterContainer.innerHTML += `<button class="cat-filter-btn ${cat === c ? 'active' : ''}" data-cat="${c}" onclick="filterByCategory('${c}', this)"><span>${c}</span></button>`;
+    });
+
+    if (cat) currentCat = cat;
+
+    // Fetch all products
+    const res = await fetch('/api/products');
+    const data = await res.json();
+    allProducts = data.products || [];
+    renderProducts();
+
+    // Search input
+    let searchTimer;
+    document.getElementById('search-input').addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        searchQuery = this.value.trim();
+        renderProducts();
+      }, 300);
+    });
+  });
+
+  function filterByCategory(cat, btn) {
+    currentCat = cat;
+    document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderProducts();
+  }
+
+  function applySort() {
+    currentSort = document.getElementById('sort-select').value;
+    renderProducts();
+  }
+
+  function applyPriceFilter() {
+    minPrice = parseFloat(document.getElementById('min-price').value) || null;
+    maxPrice = parseFloat(document.getElementById('max-price').value) || null;
+    renderProducts();
+  }
+
+  function clearFilters() {
+    currentCat = 'all';
+    currentSort = 'default';
+    searchQuery = '';
+    minPrice = null; maxPrice = null;
+    document.getElementById('search-input').value = '';
+    document.getElementById('sort-select').value = 'default';
+    document.getElementById('min-price').value = '';
+    document.getElementById('max-price').value = '';
+    document.getElementById('instock-only').checked = false;
+    document.querySelectorAll('.cat-filter-btn').forEach((b,i) => b.classList.toggle('active', i === 0));
+    renderProducts();
+  }
+
+  function setView(v) {
+    currentView = v;
+    const grid = document.getElementById('products-grid');
+    if (v === 'list') {
+      grid.style.gridTemplateColumns = '1fr';
+    } else {
+      grid.style.gridTemplateColumns = '';
+    }
+  }
+
+  function renderProducts() {
+    let products = [...allProducts];
+    if (currentCat !== 'all') products = products.filter(p => p.category === currentCat);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      products = products.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+    }
+    if (minPrice !== null) products = products.filter(p => p.price >= minPrice);
+    if (maxPrice !== null) products = products.filter(p => p.price <= maxPrice);
+    if (document.getElementById('instock-only').checked) products = products.filter(p => p.inStock);
+
+    // Sort
+    switch(currentSort) {
+      case 'price-asc': products.sort((a,b) => a.price - b.price); break;
+      case 'price-desc': products.sort((a,b) => b.price - a.price); break;
+      case 'rating': products.sort((a,b) => b.rating - a.rating); break;
+      case 'name': products.sort((a,b) => a.name.localeCompare(b.name)); break;
+    }
+
+    document.getElementById('results-count').textContent = `Showing ${products.length} product${products.length !== 1 ? 's' : ''}`;
+    const grid = document.getElementById('products-grid');
+    const noResults = document.getElementById('no-results');
+
+    if (!products.length) {
+      grid.innerHTML = '';
+      noResults.classList.remove('hidden');
+    } else {
+      noResults.classList.add('hidden');
+      grid.innerHTML = products.map(p => renderProductCard(p)).join('');
+    }
+  }
+</script>
+<style>
+.cat-filter-btn {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; padding: 8px 12px; margin-bottom: 4px;
+  border: 1.5px solid #ddd2ba; border-radius: 50px;
+  background: white; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  color: #444; transition: all 0.2s; text-align: left;
+}
+.cat-filter-btn:hover { border-color: #1b5e20; color: #1b5e20; }
+.cat-filter-btn.active { background: #1b5e20; border-color: #1b5e20; color: white; }
+@media(max-width:768px) {
+  .container > div { grid-template-columns: 1fr !important; }
+  div[style*="position:sticky"] { position: static !important; }
+}
+</style>
+</body>
+</html>

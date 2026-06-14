@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login – Shazz Natural's</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+</head>
+<body>
+<div class="adm-login-page">
+  <div class="adm-login-card">
+    <div class="adm-login-logo">
+      <div class="leaf">🌿</div>
+      <h2>Shazz Natural's</h2>
+      <p>Admin Control Panel</p>
+    </div>
+    <h3>Sign in to continue</h3>
+    <div id="alert"></div>
+    <div class="adm-form-group">
+      <label>Admin Username</label>
+      <input type="text" id="username" placeholder="Enter username" autocomplete="username"/>
+    </div>
+    <div class="adm-form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter password" autocomplete="current-password"/>
+    </div>
+    <button onclick="doLogin()" class="adm-btn adm-btn-primary adm-btn-lg" style="width:100%;justify-content:center;margin-top:8px" id="login-btn">
+      Sign In
+    </button>
+    <div style="text-align:center;margin-top:20px;font-size:0.8rem;color:#888">
+      <a href="/" style="color:#1b5e20">← Back to Website</a>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (me.user?.role === 'admin') window.location.href = '/admin/dashboard.html';
+    document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  });
+
+  async function doLogin() {
+    const btn = document.getElementById('login-btn');
+    const alert = document.getElementById('alert');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    if (!username || !password) { alert.innerHTML = '<div class="adm-alert adm-alert-error">Please enter username and password.</div>'; return; }
+    btn.innerHTML = '<span class="adm-spinner"></span> Signing in...';
+    btn.disabled = true;
+    const res = await fetch('/api/auth/admin-login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = '/admin/dashboard.html';
+    } else {
+      alert.innerHTML = '<div class="adm-alert adm-alert-error">❌ ' + (data.error || 'Invalid credentials') + '</div>';
+      btn.innerHTML = 'Sign In';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

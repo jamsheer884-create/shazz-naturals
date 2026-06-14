@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Product – Shazz Natural's</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+<div id="header">
+  <div class="header-top">🌿 Free shipping above ₹500 &nbsp;|&nbsp; <a href="https://wa.me/917902302884">WhatsApp: +91 79023 02884</a></div>
+  <nav><div class="navbar">
+    <a href="/" class="nav-logo">
+      <img class="nav-logo-svg" src="/images/shazz-logo.png" alt="Shazz Natural's" style="object-fit:contain"/>
+      <div class="nav-logo-text"><div class="brand-name">Shazz Natural's</div><div class="brand-sub">From God's Own Country</div></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li><li><a href="/products.html" class="active">Products</a></li>
+      <li><a href="/#about">About</a></li><li><a href="/#contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="/dashboard.html"><i class="fa fa-user"></i></a>
+      <a href="/cart.html" style="position:relative"><i class="fa fa-shopping-bag"></i><span class="cart-badge" id="cart-count" style="display:none">0</span></a>
+    </div>
+  </div></nav>
+</div>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="/">Home</a> › <a href="/products.html">Products</a> › <span id="bc-name">Product</span></div>
+</div>
+
+<section class="section section-cream">
+  <div class="container">
+    <div id="product-loading" class="loading-center"><div class="spinner"></div><span>Loading product...</span></div>
+    <div id="product-detail" class="hidden product-detail-layout"></div>
+    <div id="product-error" class="hidden" style="text-align:center;padding:60px">
+      <p style="font-size:2rem">😞</p>
+      <h3>Product not found</h3>
+      <a href="/products.html" class="btn btn-primary" style="margin-top:16px">Browse Products</a>
+    </div>
+  </div>
+</section>
+
+<!-- Related Products -->
+<section class="section section-white">
+  <div class="container">
+    <div class="section-header"><span class="section-label">You May Also Like</span><h2>Related Products</h2></div>
+    <div class="products-grid" id="related-products"><div class="loading-center"><div class="spinner"></div></div></div>
+  </div>
+</section>
+
+<footer style="background:linear-gradient(135deg,#0a2f0a,#1a1a1a);color:rgba(255,255,255,0.7);text-align:center;padding:24px">
+  © 2024 Shazz Natural's – Kerala, India
+</footer>
+<a href="https://wa.me/917902302884" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/main.js"></script>
+<script>
+  let currentProduct = null;
+  let quantity = 1;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadSettings();
+    updateCartBadge();
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) { showError(); return; }
+    try {
+      const res = await fetch('/api/products/' + id);
+      const data = await res.json();
+      if (!data.product) { showError(); return; }
+      currentProduct = data.product;
+      renderProduct(data.product);
+      loadRelated(data.product.category, id);
+    } catch(e) { showError(); }
+  });
+
+  function showError() {
+    document.getElementById('product-loading').classList.add('hidden');
+    document.getElementById('product-error').classList.remove('hidden');
+  }
+
+  function renderProduct(p) {
+    document.getElementById('product-loading').classList.add('hidden');
+    document.getElementById('bc-name').textContent = p.name;
+    document.title = p.name + ' – Shazz Natural\'s';
+    const discount = p.originalPrice ? Math.round((1 - p.price/p.originalPrice)*100) : 0;
+    const stars = '★'.repeat(Math.round(p.rating)) + '☆'.repeat(5 - Math.round(p.rating));
+    const detail = document.getElementById('product-detail');
+    detail.classList.remove('hidden');
+    detail.innerHTML = `
+      <div class="product-detail-imgs">
+        <div class="product-main-img">
+          <img id="main-img" src="${p.image}" onerror="this.parentElement.innerHTML='<div style=\\'font-size:5rem;display:flex;align-items:center;justify-content:center;height:100%;color:#999\\'>${getCategoryEmoji(p.category)}</div>'" alt="${p.name}"/>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          ${p.image && p.image !== '/images/placeholder.jpg' ? `
+            <div onclick="document.getElementById('main-img').src='${p.image}'"
+              style="width:70px;height:70px;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #c9a84c">
+              <img src="${p.image}" style="width:100%;height:100%;object-fit:cover" alt="thumb">
+            </div>` : ''}
+        </div>
+      </div>
+      <div class="product-detail-info">
+        <div class="product-category">${p.category}</div>
+        <h1 class="product-detail-name">${p.name}</h1>
+        <div class="product-detail-rating">
+          <div class="stars">${stars}</div>
+          <span class="rating-count">${p.rating} (${p.reviewCount} reviews)</span>
+          <span style="color:${p.inStock?'#2e7d32':'#c62828'};font-size:0.82rem;font-weight:700">
+            ${p.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+          </span>
+        </div>
+        <div style="margin-bottom:16px">
+          <span class="product-detail-price">₹${p.price}</span>
+          ${p.originalPrice ? `<span class="product-detail-original">₹${p.originalPrice}</span><span class="product-detail-discount">${discount}% OFF</span>` : ''}
+        </div>
+        ${p.weight ? `<div class="product-weight-badge"><i class="fa fa-weight-hanging"></i> ${p.weight}</div>` : ''}
+        <p class="product-desc">${p.description}</p>
+        ${p.benefits && p.benefits.length ? `
+        <div class="product-benefits">
+          <h4>✨ Key Benefits</h4>
+          <ul>${p.benefits.map(b => `<li>${b}</li>`).join('')}</ul>
+        </div>` : ''}
+        <div class="qty-row">
+          <label style="font-weight:700;font-size:0.85rem">Quantity:</label>
+          <div class="qty-selector">
+            <button onclick="changeQty(-1)">−</button>
+            <span id="qty-display">1</span>
+            <button onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="product-btns">
+          <button class="btn btn-primary btn-lg" onclick="addToCartDetail()" ${!p.inStock?'disabled':''}>
+            <i class="fa fa-shopping-bag"></i> Add to Cart
+          </button>
+          <button class="btn btn-whatsapp btn-lg" onclick="buyNowWhatsApp()">
+            <i class="fab fa-whatsapp"></i> Buy via WhatsApp
+          </button>
+        </div>
+        <div style="margin-top:20px;padding:16px;background:#f5ead0;border-radius:12px;border:1px solid #ddd2ba">
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#555">
+              <span>🚀</span> <span>Free shipping above ₹500</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#555">
+              <span>🌿</span> <span>100% Natural & Safe</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#555">
+              <span>🐇</span> <span>Cruelty Free</span>
+            </div>
+          </div>
+        </div>
+        <!-- Tabs -->
+        <div class="product-tabs">
+          <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('description', this)">Description</button>
+            <button class="tab-btn" onclick="switchTab('ingredients', this)">Ingredients</button>
+            <button class="tab-btn" onclick="switchTab('howto', this)">How to Use</button>
+          </div>
+          <div class="tab-content active" id="tab-description">
+            <p>${p.description}</p>
+          </div>
+          <div class="tab-content" id="tab-ingredients">
+            <p>${p.ingredients || 'Ingredient list coming soon.'}</p>
+          </div>
+          <div class="tab-content" id="tab-howto">
+            <p>${p.howToUse || 'Usage instructions coming soon.'}</p>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function changeQty(delta) {
+    quantity = Math.max(1, quantity + delta);
+    document.getElementById('qty-display').textContent = quantity;
+  }
+
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  async function addToCartDetail() {
+    if (!currentProduct) return;
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({productId: currentProduct.id, quantity})
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Added to cart! 🛒', 'cart');
+      updateCartBadge();
+    }
+  }
+
+  function buyNowWhatsApp() {
+    if (!currentProduct) return;
+    const msg = `Hi Shazz Natural's! 🌿\n\nI want to order:\n• *${currentProduct.name}* x${quantity} - ₹${currentProduct.price * quantity}\n\nPlease confirm availability and delivery details. Thank you!`;
+    window.open('https://wa.me/917902302884?text=' + encodeURIComponent(msg), '_blank');
+  }
+
+  async function loadRelated(category, excludeId) {
+    const res = await fetch('/api/products?category=' + encodeURIComponent(category));
+    const data = await res.json();
+    const related = (data.products || []).filter(p => p.id !== excludeId).slice(0, 4);
+    const container = document.getElementById('related-products');
+    if (!related.length) {
+      container.innerHTML = '<p style="text-align:center;color:#777;padding:20px">No related products found.</p>';
+      return;
+    }
+    container.innerHTML = related.map(p => renderProductCard(p)).join('');
+  }
+</script>
+</body>
+</html>

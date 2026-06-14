@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <div class="adm-nav-section">Main</div>
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <div class="adm-nav-section">Settings</div>
+      <a href="/admin/settings.html" class="active"><span class="nav-icon"><i class="fa fa-cog"></i></span> Site Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title"><h1>Site Settings</h1><p>Update logo, contact info, and business details</p></div>
+    </div>
+
+    <div class="adm-content">
+      <div id="page-alert"></div>
+
+      <!-- Logo Section -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-image"></i> Logo <span style="font-size:0.8rem;font-weight:400;color:#888">(appears in navbar/header only)</span></h2></div>
+        <div class="adm-card-body">
+          <div class="settings-section">
+            <div class="logo-preview-wrap">
+              <div class="logo-preview"><img id="logo-preview-img" src="" alt="Logo" onerror="this.parentElement.innerHTML='<span style=font-size:2rem>🌿</span>'"/></div>
+              <div>
+                <p style="font-size:0.85rem;color:#666;margin-bottom:10px">Shown in the top navigation bar on every page.<br>Recommended: PNG with transparent background, min 200x200px.</p>
+                <label class="adm-btn adm-btn-secondary" style="cursor:pointer">
+                  <i class="fa fa-upload"></i> Upload New Logo
+                  <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="uploadLogo(event)"/>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Image Section -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-image"></i> Hero Banner Image <span style="font-size:0.8rem;font-weight:400;color:#888">(homepage right side picture)</span></h2></div>
+        <div class="adm-card-body">
+          <div class="settings-section">
+            <div class="logo-preview-wrap">
+              <div class="logo-preview" style="width:120px;height:120px;border-radius:12px;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">
+                <img id="hero-image-preview" src="" alt="Hero Image" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<span style=font-size:2rem>📸</span>'"/>
+              </div>
+              <div>
+                <p style="font-size:0.85rem;color:#666;margin-bottom:10px">Shown in the animated frame on the homepage.<br>Recommended: square image, min 400x400px. JPG or PNG.</p>
+                <label class="adm-btn adm-btn-secondary" style="cursor:pointer">
+                  <i class="fa fa-upload"></i> Upload Hero Image
+                  <input type="file" id="hero-image-input" accept="image/*" style="display:none" onchange="uploadHeroImage(event)"/>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact & Business Info -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-info-circle"></i> Business Information</h2></div>
+        <div class="adm-card-body">
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label>Business Name</label>
+              <input type="text" id="s-name" placeholder="Shazz Natural's"/>
+            </div>
+            <div class="adm-form-group">
+              <label>Tagline</label>
+              <input type="text" id="s-tagline" placeholder="Pure Nature. Pure Kerala. Pure You."/>
+            </div>
+          </div>
+          <div class="adm-form-group">
+            <label>About Us Description</label>
+            <textarea id="s-about" rows="4" placeholder="About your brand..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Banner Text -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-edit"></i> Hero Banner Text</h2></div>
+        <div class="adm-card-body">
+          <p style="font-size:0.85rem;color:#666;margin-bottom:16px">These 3 lines appear in the big banner on the homepage.</p>
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label>Line 1 <span style="font-weight:400;color:#888">(white text)</span></label>
+              <input type="text" id="s-hero-line1" placeholder="Pure Nature."/>
+            </div>
+            <div class="adm-form-group">
+              <label>Line 2 <span style="font-weight:400;color:#c9a84c">★ Gold text</span></label>
+              <input type="text" id="s-hero-line2" placeholder="Pure Kerala."/>
+            </div>
+          </div>
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label>Line 3 <span style="font-weight:400;color:#888;font-style:italic">italic text</span></label>
+              <input type="text" id="s-hero-line3" placeholder="Pure You."/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Details -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-phone"></i> Contact Details</h2></div>
+        <div class="adm-card-body">
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label>Phone Number</label>
+              <input type="text" id="s-phone" placeholder="+91 79023 02884"/>
+            </div>
+            <div class="adm-form-group">
+              <label>WhatsApp Number <span style="font-weight:400;color:#888">(with country code, no +)</span></label>
+              <input type="text" id="s-whatsapp" placeholder="917902302884"/>
+            </div>
+          </div>
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label>Email Address</label>
+              <input type="email" id="s-email" placeholder="shazznaturals@gmail.com"/>
+            </div>
+            <div class="adm-form-group">
+              <label>Address / Location</label>
+              <input type="text" id="s-address" placeholder="Kerala, India"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social Media -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-share-alt"></i> Social Media Links</h2></div>
+        <div class="adm-card-body">
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label><i class="fab fa-instagram" style="color:#e1306c"></i> Instagram URL</label>
+              <input type="url" id="s-instagram" placeholder="https://instagram.com/shazznaturals"/>
+            </div>
+            <div class="adm-form-group">
+              <label><i class="fab fa-facebook-f" style="color:#1877f2"></i> Facebook URL</label>
+              <input type="url" id="s-facebook" placeholder="https://facebook.com/shazznaturals"/>
+            </div>
+          </div>
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label><i class="fab fa-youtube" style="color:#ff0000"></i> YouTube URL</label>
+              <input type="url" id="s-youtube" placeholder="https://youtube.com/@shazznaturals"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping Settings -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-truck"></i> Shipping Settings</h2></div>
+        <div class="adm-card-body">
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label>Free Shipping Above (₹)</label>
+              <input type="number" id="s-free-shipping" placeholder="500"/>
+            </div>
+            <div class="adm-form-group">
+              <label>Standard Shipping Charge (₹)</label>
+              <input type="number" id="s-shipping-charge" placeholder="60"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="saveSettings()" class="adm-btn adm-btn-primary adm-btn-lg" id="save-btn">
+        <i class="fa fa-save"></i> Save All Settings
+      </button>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    await loadSettings();
+  });
+
+  async function loadSettings() {
+    const s = await fetch('/api/settings').then(r => r.json());
+    document.getElementById('logo-preview-img').src = s.logo || '';
+    if (s.heroImage) document.getElementById('hero-image-preview').src = s.heroImage;
+    document.getElementById('s-name').value = s.siteName || '';
+    document.getElementById('s-tagline').value = s.tagline || '';
+    document.getElementById('s-about').value = s.aboutUs || '';
+    document.getElementById('s-phone').value = s.phone || '';
+    document.getElementById('s-whatsapp').value = s.whatsapp || '';
+    document.getElementById('s-email').value = s.email || '';
+    document.getElementById('s-address').value = s.address || '';
+    document.getElementById('s-instagram').value = s.instagram || '';
+    document.getElementById('s-facebook').value = s.facebook || '';
+    document.getElementById('s-youtube').value = s.youtube || '';
+    document.getElementById('s-free-shipping').value = s.freeShippingAbove || 500;
+    document.getElementById('s-shipping-charge').value = s.shippingCharge || 60;
+    document.getElementById('s-hero-line1').value = s.heroLine1 || '';
+    document.getElementById('s-hero-line2').value = s.heroLine2 || '';
+    document.getElementById('s-hero-line3').value = s.heroLine3 || '';
+  }
+
+  async function uploadLogo(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('logo', file);
+    showAlert('Uploading logo...', 'info');
+    const res = await fetch('/api/settings/logo', {method:'POST', body: fd});
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('logo-preview-img').src = data.logo + '?t=' + Date.now();
+      showAlert('Logo updated successfully! ✅', 'success');
+    } else {
+      showAlert('Logo upload failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  }
+
+  async function uploadHeroImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('heroImage', file);
+    showAlert('Uploading hero image...', 'info');
+    const res = await fetch('/api/settings/hero-image', {method:'POST', body: fd});
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('hero-image-preview').src = data.heroImage + '?t=' + Date.now();
+      showAlert('Hero image updated successfully! ✅', 'success');
+    } else {
+      showAlert('Upload failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  }
+
+  async function saveSettings() {
+    const btn = document.getElementById('save-btn');
+    btn.innerHTML = '<span class="adm-spinner"></span> Saving...';
+    btn.disabled = true;
+    const body = {
+      siteName: document.getElementById('s-name').value,
+      tagline: document.getElementById('s-tagline').value,
+      aboutUs: document.getElementById('s-about').value,
+      phone: document.getElementById('s-phone').value,
+      whatsapp: document.getElementById('s-whatsapp').value,
+      email: document.getElementById('s-email').value,
+      address: document.getElementById('s-address').value,
+      instagram: document.getElementById('s-instagram').value,
+      facebook: document.getElementById('s-facebook').value,
+      youtube: document.getElementById('s-youtube').value,
+      freeShippingAbove: parseFloat(document.getElementById('s-free-shipping').value) || 500,
+      shippingCharge: parseFloat(document.getElementById('s-shipping-charge').value) || 60,
+      heroLine1: document.getElementById('s-hero-line1').value,
+      heroLine2: document.getElementById('s-hero-line2').value,
+      heroLine3: document.getElementById('s-hero-line3').value,
+    };
+    const res = await fetch('/api/settings', {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    const data = await res.json();
+    if (data.success) {
+      showAlert('Settings saved successfully! ✅', 'success');
+    } else {
+      showAlert('Save failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+    btn.innerHTML = '<i class="fa fa-save"></i> Save All Settings';
+    btn.disabled = false;
+  }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('page-alert');
+    el.innerHTML = `<div class="adm-alert adm-alert-${type === 'info' ? 'success' : type}">${msg}</div>`;
+    if (type !== 'info') setTimeout(() => el.innerHTML = '', 4000);
+    window.scrollTo(0, 0);
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', {method:'POST'});
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>

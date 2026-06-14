@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart – Shazz Natural's</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+<div id="header">
+  <div class="header-top">🌿 Free shipping above ₹500 &nbsp;|&nbsp; <a href="https://wa.me/917902302884">WhatsApp: +91 79023 02884</a></div>
+  <nav><div class="navbar">
+    <a href="/" class="nav-logo">
+      <img class="nav-logo-svg" src="/images/shazz-logo.png" alt="Shazz Natural's" style="object-fit:contain"/>
+      <div class="nav-logo-text"><div class="brand-name">Shazz Natural's</div><div class="brand-sub">From God's Own Country</div></div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li><li><a href="/products.html">Products</a></li>
+      <li><a href="/#about">About</a></li><li><a href="/#contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="/dashboard.html"><i class="fa fa-user"></i></a>
+      <a href="/cart.html" style="position:relative"><i class="fa fa-shopping-bag"></i><span class="cart-badge" id="cart-count" style="display:none">0</span></a>
+    </div>
+  </div></nav>
+</div>
+
+<div class="page-header">
+  <h1>🛒 My Cart</h1>
+  <p>Review your items before ordering</p>
+  <div class="breadcrumb"><a href="/">Home</a> › Cart</div>
+</div>
+
+<section class="section section-cream">
+  <div class="container">
+    <!-- Empty Cart -->
+    <div id="empty-cart" class="cart-empty hidden">
+      <div class="empty-icon">🛒</div>
+      <h3>Your cart is empty</h3>
+      <p>Add some natural goodness to your cart and come back!</p>
+      <a href="/products.html" class="btn btn-primary btn-lg">
+        <i class="fa fa-shopping-bag"></i> Shop Now
+      </a>
+    </div>
+
+    <!-- Cart with Items -->
+    <div id="cart-content" class="hidden">
+      <div class="cart-layout">
+        <!-- Items -->
+        <div>
+          <div class="cart-table">
+            <div class="cart-table-header">
+              <div>Product</div>
+              <div class="col-price">Price</div>
+              <div>Quantity</div>
+              <div class="col-total">Total</div>
+              <div></div>
+            </div>
+            <div id="cart-items"></div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
+            <a href="/products.html" class="btn btn-outline">
+              <i class="fa fa-arrow-left"></i> Continue Shopping
+            </a>
+            <button onclick="clearCart()" class="btn btn-outline" style="color:#c62828;border-color:#c62828">
+              <i class="fa fa-trash"></i> Clear Cart
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div>
+          <div class="cart-summary">
+            <h3>Order Summary</h3>
+            <div class="summary-row">
+              <span>Subtotal (<span id="item-count">0</span> items)</span>
+              <span id="subtotal">₹0</span>
+            </div>
+            <div class="summary-row">
+              <span>Shipping</span>
+              <span id="shipping-text">₹60</span>
+            </div>
+            <div class="summary-row" id="savings-row" style="display:none">
+              <span style="color:#2e7d32">You Save</span>
+              <span style="color:#2e7d32" id="savings-amount"></span>
+            </div>
+            <div class="summary-row total">
+              <span>Total</span>
+              <span id="total-amount">₹0</span>
+            </div>
+
+            <!-- WhatsApp Order -->
+            <button onclick="orderViaWhatsApp()" class="btn btn-whatsapp" style="width:100%;justify-content:center;padding:14px;margin-top:16px;font-size:1rem">
+              <i class="fab fa-whatsapp"></i> Order via WhatsApp
+            </button>
+            <p style="font-size:0.75rem;text-align:center;color:#777;margin-top:8px">
+              Opens WhatsApp with your complete order
+            </p>
+
+            <div style="border-top:1px solid #ddd2ba;margin-top:16px;padding-top:16px">
+              <button onclick="placeOrder()" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:1rem">
+                <i class="fa fa-check"></i> Place Order (COD)
+              </button>
+              <p style="font-size:0.72rem;text-align:center;color:#777;margin-top:6px">Cash on Delivery available</p>
+            </div>
+
+            <div style="margin-top:20px;padding:14px;background:#e8f5e9;border-radius:12px">
+              <div style="font-size:0.8rem;color:#1b5e20;font-weight:700;margin-bottom:6px">🌿 What you get:</div>
+              <div style="font-size:0.78rem;color:#2e7d32">✓ 100% Natural Products</div>
+              <div style="font-size:0.78rem;color:#2e7d32">✓ Handcrafted in Kerala</div>
+              <div style="font-size:0.78rem;color:#2e7d32">✓ Direct from Maker</div>
+              <div style="font-size:0.78rem;color:#2e7d32">✓ No Hidden Charges</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Order Form Modal -->
+<div id="order-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:16px;padding:36px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1b5e20">Delivery Details</h3>
+      <button onclick="document.getElementById('order-modal').classList.add('hidden')" style="background:none;border:none;font-size:1.3rem;cursor:pointer">✕</button>
+    </div>
+    <div id="order-alert"></div>
+    <div class="form-group">
+      <label>Full Name *</label>
+      <input type="text" id="order-name" placeholder="Your full name">
+    </div>
+    <div class="form-group">
+      <label>Phone Number *</label>
+      <input type="tel" id="order-phone" placeholder="+91 XXXXX XXXXX">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="order-email" placeholder="your@email.com">
+    </div>
+    <div class="form-group">
+      <label>Delivery Address *</label>
+      <textarea id="order-address" rows="3" placeholder="House No., Street, City, District"></textarea>
+    </div>
+    <div class="form-group">
+      <label>PIN Code *</label>
+      <input type="text" id="order-pincode" placeholder="PIN Code" maxlength="6">
+    </div>
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select id="order-payment">
+        <option value="COD">Cash on Delivery (COD)</option>
+        <option value="UPI">UPI / Google Pay</option>
+        <option value="Bank">Bank Transfer</option>
+      </select>
+    </div>
+    <div style="background:#f5ead0;border-radius:10px;padding:14px;margin-bottom:20px;font-size:0.85rem;color:#555;line-height:1.7">
+      <strong style="color:#1b5e20">Order Total: <span id="modal-total"></span></strong><br>
+      We will confirm your order via WhatsApp after receiving. Delivery in 3-7 business days across India.
+    </div>
+    <button onclick="confirmOrder()" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">
+      <i class="fa fa-check"></i> Confirm Order
+    </button>
+    <button onclick="orderViaWhatsApp(true)" class="btn btn-whatsapp" style="width:100%;justify-content:center;margin-top:10px">
+      <i class="fab fa-whatsapp"></i> Order via WhatsApp Instead
+    </button>
+  </div>
+</div>
+
+<footer style="background:linear-gradient(135deg,#0a2f0a,#1a1a1a);color:rgba(255,255,255,0.7);text-align:center;padding:24px">
+  © 2024 Shazz Natural's – Kerala, India
+</footer>
+<a href="https://wa.me/917902302884" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/main.js"></script>
+<script>
+  let cartData = [];
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadSettings();
+    await loadCart();
+  });
+
+  async function loadCart() {
+    const res = await fetch('/api/cart');
+    const data = await res.json();
+    cartData = data.cart || [];
+    renderCart();
+    updateCartBadge();
+  }
+
+  function renderCart() {
+    const empty = document.getElementById('empty-cart');
+    const content = document.getElementById('cart-content');
+    if (!cartData.length) {
+      empty.classList.remove('hidden');
+      content.classList.add('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    content.classList.remove('hidden');
+
+    const settings = window._settings || {};
+    const freeShipping = settings.freeShippingAbove || 500;
+    const shippingCharge = settings.shippingCharge || 60;
+
+    const subtotal = cartData.reduce((s, i) => s + i.price * i.quantity, 0);
+    const shipping = subtotal >= freeShipping ? 0 : shippingCharge;
+    const total = subtotal + shipping;
+    const itemCount = cartData.reduce((s, i) => s + i.quantity, 0);
+
+    document.getElementById('item-count').textContent = itemCount;
+    document.getElementById('subtotal').textContent = '₹' + subtotal;
+    document.getElementById('shipping-text').innerHTML = shipping === 0
+      ? '<span class="free">FREE 🎉</span>'
+      : '₹' + shipping + ` <span style="font-size:0.72rem;color:#777">(free above ₹${freeShipping})</span>`;
+    document.getElementById('total-amount').textContent = '₹' + total;
+    document.getElementById('modal-total').textContent = '₹' + total;
+
+    document.getElementById('cart-items').innerHTML = cartData.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-product">
+          <div class="cart-item-img">
+            <img src="${item.image}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="${item.name}">
+            <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:1.5rem">🌿</div>
+          </div>
+          <div>
+            <div class="cart-item-name">
+              <a href="/product.html?id=${item.productId}" style="color:#1b5e20">${item.name}</a>
+            </div>
+            ${item.weight ? `<div class="cart-item-weight">📦 ${item.weight}</div>` : ''}
+          </div>
+        </div>
+        <div class="cart-item-price">₹${item.price}</div>
+        <div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="updateQty('${item.productId}', ${item.quantity - 1})">−</button>
+            <span class="qty-num">${item.quantity}</span>
+            <button class="qty-btn" onclick="updateQty('${item.productId}', ${item.quantity + 1})">+</button>
+          </div>
+        </div>
+        <div class="cart-item-total" style="font-weight:700;color:#1b5e20">₹${item.price * item.quantity}</div>
+        <button class="remove-btn" onclick="removeItem('${item.productId}')" title="Remove"><i class="fa fa-trash"></i></button>
+      </div>`).join('');
+  }
+
+  async function updateQty(productId, qty) {
+    const res = await fetch('/api/cart/' + productId, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({quantity: qty})
+    });
+    const data = await res.json();
+    cartData = data.cart;
+    renderCart();
+    updateCartBadge();
+  }
+
+  async function removeItem(productId) {
+    const res = await fetch('/api/cart/' + productId, { method: 'DELETE' });
+    const data = await res.json();
+    cartData = data.cart;
+    renderCart();
+    updateCartBadge();
+    showToast('Item removed from cart', 'info');
+  }
+
+  async function clearCart() {
+    if (!confirm('Remove all items from cart?')) return;
+    await fetch('/api/cart', { method: 'DELETE' });
+    cartData = [];
+    renderCart();
+    updateCartBadge();
+  }
+
+  function orderViaWhatsApp(fromModal) {
+    const settings = window._settings || {};
+    const freeShipping = settings.freeShippingAbove || 500;
+    const shippingCharge = settings.shippingCharge || 60;
+    const subtotal = cartData.reduce((s, i) => s + i.price * i.quantity, 0);
+    const shipping = subtotal >= freeShipping ? 0 : shippingCharge;
+    const total = subtotal + shipping;
+
+    const name = fromModal ? document.getElementById('order-name').value : '';
+    const phone = fromModal ? document.getElementById('order-phone').value : '';
+    const address = fromModal ? document.getElementById('order-address').value : '';
+
+    const itemsList = cartData.map(i => `• *${i.name}* x${i.quantity} = ₹${i.price * i.quantity}`).join('\n');
+    const customerInfo = name ? `\n\n*Customer Details:*\nName: ${name}\nPhone: ${phone}\nAddress: ${address}` : '';
+    const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ${shipping === 0 ? 'FREE' : '₹' + shipping}\n*Total: ₹${total}*\n\nPlease confirm my order. Thank you! 🙏`;
+    window.open('https://wa.me/917902302884?text=' + encodeURIComponent(msg), '_blank');
+    if (fromModal) document.getElementById('order-modal').classList.add('hidden');
+  }
+
+  function placeOrder() {
+    document.getElementById('order-modal').classList.remove('hidden');
+  }
+
+  async function confirmOrder() {
+    const name = document.getElementById('order-name').value.trim();
+    const phone = document.getElementById('order-phone').value.trim();
+    const address = document.getElementById('order-address').value.trim();
+    const pincode = document.getElementById('order-pincode').value.trim();
+    const alertDiv = document.getElementById('order-alert');
+
+    if (!name || !phone || !address || !pincode) {
+      alertDiv.innerHTML = '<div class="alert alert-error">Please fill in all required fields.</div>';
+      return;
+    }
+
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name, phone,
+        email: document.getElementById('order-email').value,
+        address, pincode,
+        paymentMethod: document.getElementById('order-payment').value
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('order-modal').classList.add('hidden');
+      cartData = [];
+      renderCart();
+      updateCartBadge();
+      // Also send WhatsApp notification
+      const msg = `🌿 *Order Placed – Shazz Natural's*\n\n*Order ID:* ${data.order.id}\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${address}, ${pincode}\n*Items:* ${data.order.items.map(i => i.name + ' x' + i.quantity).join(', ')}\n*Total: ₹${data.order.total}*\n*Payment:* ${data.order.paymentMethod}\n\nPlease process this order. Thank you!`;
+      window.open('https://wa.me/917902302884?text=' + encodeURIComponent(msg), '_blank');
+      showToast('Order placed successfully! 🎉', 'success');
+    } else {
+      alertDiv.innerHTML = '<div class="alert alert-error">' + (data.error || 'Order failed. Please try again.') + '</div>';
+    }
+  }
+</script>
+</body>
+</html>

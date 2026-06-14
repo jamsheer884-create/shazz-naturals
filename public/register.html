@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register – Shazz Natural's</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="brand">🌿 Shazz Natural's</div>
+      <div class="tagline">From God's Own Country</div>
+    </div>
+    <h2>Create Account</h2>
+    <p class="auth-subtitle">Join us for exclusive offers and easy order tracking</p>
+    <div id="reg-alert"></div>
+    <div class="form-group">
+      <label><i class="fa fa-user"></i> Full Name *</label>
+      <input type="text" id="name" placeholder="Your full name" />
+    </div>
+    <div class="form-group">
+      <label><i class="fa fa-envelope"></i> Email Address *</label>
+      <input type="email" id="email" placeholder="your@email.com" />
+    </div>
+    <div class="form-group">
+      <label><i class="fa fa-phone"></i> Phone Number</label>
+      <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX" />
+    </div>
+    <div class="form-group">
+      <label><i class="fa fa-lock"></i> Password *</label>
+      <input type="password" id="password" placeholder="Min 6 characters" />
+    </div>
+    <div class="form-group">
+      <label><i class="fa fa-lock"></i> Confirm Password *</label>
+      <input type="password" id="confirm-password" placeholder="Repeat your password" />
+    </div>
+    <button onclick="doRegister()" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:1rem" id="reg-btn">
+      <i class="fa fa-user-plus"></i> Create Account
+    </button>
+    <div class="form-link">Already have an account? <a href="/login.html">Login here</a></div>
+    <div style="margin-top:20px;padding:12px;background:#f5ead0;border-radius:10px;font-size:0.78rem;color:#555;text-align:center">
+      🔒 Your information is safe with us. We never share your data.
+    </div>
+    <div class="form-link"><a href="/">← Back to Home</a></div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (me.user) window.location.href = '/dashboard.html';
+  });
+
+  async function doRegister() {
+    const btn = document.getElementById('reg-btn');
+    const alert = document.getElementById('reg-alert');
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm-password').value;
+    if (!name || !email || !password) { alert.innerHTML = '<div class="alert alert-error">Name, email and password are required.</div>'; return; }
+    if (password.length < 6) { alert.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters.</div>'; return; }
+    if (password !== confirm) { alert.innerHTML = '<div class="alert alert-error">Passwords do not match.</div>'; return; }
+    btn.innerHTML = '<span class="spinner spinner-sm"></span> Creating...';
+    btn.disabled = true;
+    const res = await fetch('/api/auth/register', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({name, email, phone, password})
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = '/dashboard.html';
+    } else {
+      alert.innerHTML = '<div class="alert alert-error"><i class="fa fa-exclamation-circle"></i> ' + (data.error || 'Registration failed') + '</div>';
+      btn.innerHTML = '<i class="fa fa-user-plus"></i> Create Account';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

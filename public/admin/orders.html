@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Orders – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/orders.html" class="active"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title"><h1>Orders</h1><p>Manage and update customer orders</p></div>
+    </div>
+    <div class="adm-content">
+      <div id="page-alert"></div>
+      <div class="adm-toolbar">
+        <input type="text" class="adm-search" id="search" placeholder="Search by order ID, name, phone..." oninput="filterOrders()"/>
+        <select class="adm-select" id="status-filter" onchange="filterOrders()">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Confirmed</option><option>Shipped</option>
+          <option>Delivered</option><option>Cancelled</option>
+        </select>
+      </div>
+      <div class="adm-card">
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th>
+                <th>Payment</th><th>Status</th><th>Date</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+  let allOrders = [];
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    const data = await fetch('/api/admin/orders').then(r => r.json());
+    allOrders = (data.orders || []).reverse();
+    renderTable(allOrders);
+  });
+
+  function renderTable(orders) {
+    const tbody = document.getElementById('orders-tbody');
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#888">No orders found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td><strong style="font-size:0.8rem">${o.id}</strong></td>
+        <td>
+          <div style="font-weight:600;font-size:0.88rem">${o.customerName || '—'}</div>
+          <div style="font-size:0.75rem;color:#888">${o.customerPhone || ''}</div>
+          <div style="font-size:0.75rem;color:#888">${o.address ? o.address.substring(0,30) + '...' : ''}</div>
+        </td>
+        <td>
+          <div class="order-items-list">
+            <ul>${(o.items || []).map(i => `<li>${i.name} ×${i.quantity}</li>`).join('')}</ul>
+          </div>
+        </td>
+        <td><strong>₹${o.total}</strong></td>
+        <td><span class="adm-badge badge-grey">${o.paymentMethod || 'COD'}</span></td>
+        <td>
+          <select class="adm-select" style="padding:5px 8px;font-size:0.78rem" onchange="updateStatus('${o.id}', this.value)">
+            ${['Pending','Confirmed','Shipped','Delivered','Cancelled'].map(s => `<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td style="font-size:0.78rem;color:#888">${new Date(o.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</td>
+        <td>
+          <a href="https://wa.me/${o.customerPhone ? o.customerPhone.replace(/[^0-9]/g,'') : '917902302884'}?text=${encodeURIComponent('Hi ' + (o.customerName||'') + '! Your order ' + o.id + ' status has been updated.')}"
+             target="_blank" class="adm-btn adm-btn-outline adm-btn-sm" title="Notify customer">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+        </td>
+      </tr>`).join('');
+  }
+
+  function filterOrders() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const status = document.getElementById('status-filter').value;
+    const filtered = allOrders.filter(o => {
+      const matchQ = !q || o.id.toLowerCase().includes(q) || (o.customerName||'').toLowerCase().includes(q) || (o.customerPhone||'').includes(q);
+      const matchStatus = !status || o.status === status;
+      return matchQ && matchStatus;
+    });
+    renderTable(filtered);
+  }
+
+  async function updateStatus(id, status) {
+    const res = await fetch('/api/admin/orders/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status})});
+    const data = await res.json();
+    if (data.success) {
+      const o = allOrders.find(x => x.id === id);
+      if (o) o.status = status;
+      const el = document.getElementById('page-alert');
+      el.innerHTML = '<div class="adm-alert adm-alert-success">Order status updated to ' + status + '</div>';
+      setTimeout(() => el.innerHTML = '', 3000);
+    }
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', {method:'POST'});
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>

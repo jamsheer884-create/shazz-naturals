@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Shazz Natural's</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="brand">🌿 Shazz Natural's</div>
+      <div class="tagline">From God's Own Country</div>
+    </div>
+    <h2>Welcome Back</h2>
+    <p class="auth-subtitle">Login to your account to view orders and more</p>
+    <div id="login-alert"></div>
+    <div class="form-group">
+      <label><i class="fa fa-envelope"></i> Email Address</label>
+      <input type="email" id="email" placeholder="your@email.com" />
+    </div>
+    <div class="form-group">
+      <label><i class="fa fa-lock"></i> Password</label>
+      <input type="password" id="password" placeholder="Your password" />
+    </div>
+    <button onclick="doLogin()" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:1rem" id="login-btn">
+      <i class="fa fa-sign-in-alt"></i> Login
+    </button>
+    <div class="form-link">Don't have an account? <a href="/register.html">Register here</a></div>
+    <div class="form-divider">or</div>
+    <a href="https://wa.me/917902302884" target="_blank" class="btn btn-whatsapp" style="width:100%;justify-content:center;margin-top:0">
+      <i class="fab fa-whatsapp"></i> Order via WhatsApp (No login needed)
+    </a>
+    <div class="form-link" style="margin-top:16px"><a href="/">← Back to Home</a></div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (me.user) window.location.href = me.user.role === 'admin' ? '/admin/dashboard.html' : '/dashboard.html';
+    document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  });
+
+  async function doLogin() {
+    const btn = document.getElementById('login-btn');
+    const alert = document.getElementById('login-alert');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) { alert.innerHTML = '<div class="alert alert-error">Please enter email and password.</div>'; return; }
+    btn.innerHTML = '<span class="spinner spinner-sm"></span> Logging in...';
+    btn.disabled = true;
+    const res = await fetch('/api/auth/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (data.success) {
+      const redirect = new URLSearchParams(window.location.search).get('redirect') || '/dashboard.html';
+      window.location.href = redirect;
+    } else {
+      alert.innerHTML = '<div class="alert alert-error"><i class="fa fa-exclamation-circle"></i> ' + (data.error || 'Login failed') + '</div>';
+      btn.innerHTML = '<i class="fa fa-sign-in-alt"></i> Login';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customers – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/customers.html" class="active"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title"><h1>Customers</h1><p>View registered customer accounts</p></div>
+    </div>
+    <div class="adm-content">
+      <div class="adm-toolbar">
+        <input type="text" class="adm-search" id="search" placeholder="Search customers..." oninput="filterCustomers()"/>
+      </div>
+      <div class="adm-card">
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Registered</th><th>Action</th></tr></thead>
+            <tbody id="customers-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+  let allCustomers = [];
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    const data = await fetch('/api/admin/customers').then(r => r.json());
+    allCustomers = data.customers || [];
+    renderTable(allCustomers);
+  });
+
+  function renderTable(customers) {
+    const tbody = document.getElementById('customers-tbody');
+    if (!customers.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#888">No registered customers yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = customers.map((c, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:50%;background:#1b5e20;color:white;display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;flex-shrink:0">${c.name.charAt(0).toUpperCase()}</div>
+            <strong>${c.name}</strong>
+          </div>
+        </td>
+        <td>${c.email}</td>
+        <td>${c.phone || '—'}</td>
+        <td style="font-size:0.8rem;color:#888">${new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
+        <td>
+          ${c.phone ? `<a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}" target="_blank" class="adm-btn adm-btn-outline adm-btn-sm"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : '—'}
+        </td>
+      </tr>`).join('');
+  }
+
+  function filterCustomers() {
+    const q = document.getElementById('search').value.toLowerCase();
+    renderTable(allCustomers.filter(c => !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || (c.phone||'').includes(q)));
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', {method:'POST'});
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>

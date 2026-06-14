@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Products – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <div class="adm-nav-section">Main</div>
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html" class="active"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <div class="adm-nav-section">Settings</div>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Site Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title"><h1>Products</h1><p>Manage your product catalog</p></div>
+      <div class="adm-topbar-actions">
+        <button onclick="openAddModal()" class="adm-btn adm-btn-primary"><i class="fa fa-plus"></i> Add Product</button>
+      </div>
+    </div>
+
+    <div class="adm-content">
+      <div id="page-alert"></div>
+      <!-- Toolbar -->
+      <div class="adm-toolbar">
+        <input type="text" class="adm-search" id="search" placeholder="Search products..." oninput="filterProducts()"/>
+        <select class="adm-select" id="cat-filter" onchange="filterProducts()">
+          <option value="">All Categories</option>
+          <option>Face Care</option><option>Lip Care</option><option>Hair Care</option>
+          <option>Natural Oils</option><option>Soaps</option><option>Henna &amp; Mehndi</option>
+          <option>Herbal Powders</option><option>Eye Care</option><option>Fragrances</option>
+          <option>Soap Making</option>
+        </select>
+        <select class="adm-select" id="stock-filter" onchange="filterProducts()">
+          <option value="">All Stock</option>
+          <option value="1">In Stock</option><option value="0">Out of Stock</option>
+        </select>
+        <span id="count-badge" style="font-size:0.82rem;color:#666"></span>
+      </div>
+
+      <!-- Products Table -->
+      <div class="adm-card">
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Featured</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Product Modal -->
+<div id="product-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:white;border-radius:14px;width:100%;max-width:650px;max-height:92vh;overflow-y:auto">
+    <div style="padding:20px 24px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:white;z-index:1">
+      <h3 id="modal-title" style="font-size:1.05rem;font-weight:600">Add Product</h3>
+      <button onclick="closeModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888">✕</button>
+    </div>
+    <div style="padding:24px">
+      <div id="modal-alert"></div>
+      <div class="adm-form-row">
+        <div class="adm-form-group">
+          <label>Product Name *</label>
+          <input type="text" id="f-name" placeholder="e.g. Beetroot Lip Balm"/>
+        </div>
+        <div class="adm-form-group">
+          <label>Category *</label>
+          <select id="f-category">
+            <option value="">Select category</option>
+            <option>Face Care</option><option>Lip Care</option><option>Hair Care</option>
+            <option>Natural Oils</option><option>Soaps</option><option>Henna &amp; Mehndi</option>
+            <option>Herbal Powders</option><option>Eye Care</option><option>Fragrances</option>
+            <option>Soap Making</option>
+          </select>
+        </div>
+      </div>
+      <div class="adm-form-row">
+        <div class="adm-form-group">
+          <label>Price (₹) *</label>
+          <input type="number" id="f-price" placeholder="e.g. 199"/>
+        </div>
+        <div class="adm-form-group">
+          <label>Original Price (₹) <span style="font-weight:400;color:#888">(for strikethrough)</span></label>
+          <input type="number" id="f-original-price" placeholder="e.g. 249"/>
+        </div>
+      </div>
+      <div class="adm-form-row">
+        <div class="adm-form-group">
+          <label>Weight / Size</label>
+          <input type="text" id="f-weight" placeholder="e.g. 100g or 200ml"/>
+        </div>
+        <div class="adm-form-group">
+          <label>Badge Label</label>
+          <input type="text" id="f-badge" placeholder="e.g. Bestseller, New, Sale"/>
+        </div>
+      </div>
+      <div class="adm-form-group">
+        <label>Description *</label>
+        <textarea id="f-description" rows="3" placeholder="Describe the product..."></textarea>
+      </div>
+      <div class="adm-form-group">
+        <label>Ingredients</label>
+        <textarea id="f-ingredients" rows="2" placeholder="List all ingredients..."></textarea>
+      </div>
+      <div class="adm-form-group">
+        <label>How to Use</label>
+        <textarea id="f-howto" rows="2" placeholder="Usage instructions..."></textarea>
+      </div>
+      <div class="adm-form-group">
+        <label>Benefits <span style="font-weight:400;color:#888">(one per line)</span></label>
+        <textarea id="f-benefits" rows="4" placeholder="Natural pink tint to lips&#10;Moisturises dry lips&#10;100% natural ingredients&#10;No parabens"></textarea>
+      </div>
+      <div class="adm-form-row">
+        <div class="adm-form-group" style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="f-instock" checked style="width:auto"/>
+          <label for="f-instock" style="cursor:pointer;margin:0">In Stock</label>
+        </div>
+        <div class="adm-form-group" style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="f-featured" style="width:auto"/>
+          <label for="f-featured" style="cursor:pointer;margin:0">Featured on Homepage</label>
+        </div>
+      </div>
+      <!-- Image Upload -->
+      <div class="adm-form-group">
+        <label>Product Image</label>
+        <div class="img-upload-area" id="upload-area">
+          <input type="file" id="f-image" accept="image/*" onchange="previewImage(event)"/>
+          <div id="upload-placeholder">
+            <div class="img-upload-icon">📸</div>
+            <p>Click to upload image (JPG, PNG, WebP – max 10MB)</p>
+          </div>
+          <img id="img-preview" class="hidden" style="max-height:150px;object-fit:contain;margin:0 auto"/>
+        </div>
+      </div>
+      <!-- Image URL for existing product -->
+      <div class="adm-form-group" id="current-img-wrap" style="display:none">
+        <label>Current Image</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <img id="current-img" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #e0e0e0" alt="current"/>
+          <span style="font-size:0.8rem;color:#888">Upload new image above to replace</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid #e0e0e0;display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeModal()" class="adm-btn adm-btn-outline">Cancel</button>
+      <button onclick="saveProduct()" class="adm-btn adm-btn-primary" id="save-btn"><i class="fa fa-save"></i> Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div id="delete-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1001;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:white;border-radius:14px;padding:32px;max-width:360px;width:100%;text-align:center">
+    <div style="font-size:3rem;margin-bottom:12px">🗑️</div>
+    <h3 style="margin-bottom:8px">Delete Product?</h3>
+    <p id="delete-name" style="color:#666;margin-bottom:24px;font-size:0.9rem"></p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="adm-btn adm-btn-outline">Cancel</button>
+      <button onclick="confirmDelete()" class="adm-btn adm-btn-danger">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allProducts = [];
+  let editingId = null;
+  let deleteId = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    await loadProducts();
+  });
+
+  async function loadProducts() {
+    const res = await fetch('/api/products');
+    const data = await res.json();
+    allProducts = data.products || [];
+    renderTable(allProducts);
+  }
+
+  function renderTable(products) {
+    document.getElementById('count-badge').textContent = products.length + ' product' + (products.length !== 1 ? 's' : '');
+    const tbody = document.getElementById('products-tbody');
+    if (!products.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#888">No products found. <button onclick="openAddModal()" style="background:none;border:none;color:#1b5e20;cursor:pointer;font-weight:700">Add one!</button></td></tr>';
+      return;
+    }
+    tbody.innerHTML = products.map(p => `
+      <tr>
+        <td>
+          <div class="prod-info-cell">
+            <div class="prod-thumb">
+              <img src="${p.image}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="${p.name}" style="width:100%;height:100%;object-fit:cover">
+              <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:1.3rem">${getCatEmoji(p.category)}</div>
+            </div>
+            <div>
+              <div class="prod-name-cell">${p.name}</div>
+              ${p.badge ? `<div class="prod-cat-cell"><span class="adm-badge badge-yellow">${p.badge}</span></div>` : ''}
+            </div>
+          </div>
+        </td>
+        <td><span style="font-size:0.8rem">${p.category}</span></td>
+        <td>
+          <strong>₹${p.price}</strong>
+          ${p.originalPrice ? `<br><small style="text-decoration:line-through;color:#888">₹${p.originalPrice}</small>` : ''}
+        </td>
+        <td><span class="adm-badge ${p.inStock ? 'badge-green' : 'badge-red'}">${p.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
+        <td>${p.featured ? '<span class="adm-badge badge-yellow">⭐ Featured</span>' : '<span style="color:#aaa;font-size:0.8rem">—</span>'}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button onclick="openEditModal('${p.id}')" class="adm-btn adm-btn-outline adm-btn-sm"><i class="fa fa-edit"></i> Edit</button>
+            <button onclick="openImageModal('${p.id}')" class="adm-btn adm-btn-secondary adm-btn-sm"><i class="fa fa-image"></i> Image</button>
+            <button onclick="openDeleteModal('${p.id}', '${p.name.replace(/'/g,"\\'")}')" class="adm-btn adm-btn-danger adm-btn-sm"><i class="fa fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function getCatEmoji(cat) {
+    const m = {'Face Care':'✨','Lip Care':'💋','Hair Care':'💆','Natural Oils':'🫙','Soaps':'🧼','Henna & Mehndi':'🌿','Herbal Powders':'🪴','Eye Care':'👁','Fragrances':'🌸','Soap Making':'🎨'};
+    return m[cat] || '🌿';
+  }
+
+  function filterProducts() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const cat = document.getElementById('cat-filter').value;
+    const stock = document.getElementById('stock-filter').value;
+    let filtered = allProducts.filter(p => {
+      const matchQ = !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+      const matchCat = !cat || p.category === cat;
+      const matchStock = stock === '' || (stock === '1' ? p.inStock : !p.inStock);
+      return matchQ && matchCat && matchStock;
+    });
+    renderTable(filtered);
+  }
+
+  function openAddModal() {
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Add New Product';
+    clearForm();
+    document.getElementById('current-img-wrap').style.display = 'none';
+    document.getElementById('product-modal').classList.remove('hidden');
+  }
+
+  function openEditModal(id) {
+    const p = allProducts.find(x => x.id === id);
+    if (!p) return;
+    editingId = id;
+    document.getElementById('modal-title').textContent = 'Edit Product';
+    document.getElementById('f-name').value = p.name;
+    document.getElementById('f-category').value = p.category;
+    document.getElementById('f-price').value = p.price;
+    document.getElementById('f-original-price').value = p.originalPrice || '';
+    document.getElementById('f-weight').value = p.weight || '';
+    document.getElementById('f-badge').value = p.badge || '';
+    document.getElementById('f-description').value = p.description;
+    document.getElementById('f-ingredients').value = p.ingredients || '';
+    document.getElementById('f-howto').value = p.howToUse || '';
+    document.getElementById('f-benefits').value = (p.benefits || []).join('\n');
+    document.getElementById('f-instock').checked = p.inStock;
+    document.getElementById('f-featured').checked = p.featured;
+    // Show current image
+    document.getElementById('current-img-wrap').style.display = 'flex';
+    document.getElementById('current-img').src = p.image;
+    document.getElementById('modal-alert').innerHTML = '';
+    document.getElementById('product-modal').classList.remove('hidden');
+  }
+
+  function openImageModal(id) {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch('/api/products/' + id + '/image', {method:'POST', body: fd});
+      const data = await res.json();
+      if (data.success) {
+        showAlert('Image updated successfully!', 'success');
+        await loadProducts();
+      } else {
+        showAlert('Image upload failed: ' + data.error, 'error');
+      }
+    };
+    input.click();
+  }
+
+  function closeModal() {
+    document.getElementById('product-modal').classList.add('hidden');
+    clearForm();
+    editingId = null;
+  }
+
+  function clearForm() {
+    ['f-name','f-price','f-original-price','f-weight','f-badge','f-description','f-ingredients','f-howto','f-benefits'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-category').value = '';
+    document.getElementById('f-instock').checked = true;
+    document.getElementById('f-featured').checked = false;
+    document.getElementById('f-image').value = '';
+    document.getElementById('img-preview').classList.add('hidden');
+    document.getElementById('upload-placeholder').style.display = 'block';
+    document.getElementById('modal-alert').innerHTML = '';
+  }
+
+  function previewImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const preview = document.getElementById('img-preview');
+      preview.src = ev.target.result;
+      preview.classList.remove('hidden');
+      document.getElementById('upload-placeholder').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveProduct() {
+    const btn = document.getElementById('save-btn');
+    const alertDiv = document.getElementById('modal-alert');
+    const name = document.getElementById('f-name').value.trim();
+    const category = document.getElementById('f-category').value;
+    const price = document.getElementById('f-price').value;
+    const description = document.getElementById('f-description').value.trim();
+    if (!name || !category || !price || !description) {
+      alertDiv.innerHTML = '<div class="adm-alert adm-alert-error">Name, category, price and description are required.</div>';
+      return;
+    }
+    btn.innerHTML = '<span class="adm-spinner"></span> Saving...';
+    btn.disabled = true;
+    const fd = new FormData();
+    fd.append('name', name);
+    fd.append('category', category);
+    fd.append('price', price);
+    fd.append('originalPrice', document.getElementById('f-original-price').value || '');
+    fd.append('weight', document.getElementById('f-weight').value);
+    fd.append('badge', document.getElementById('f-badge').value);
+    fd.append('description', description);
+    fd.append('ingredients', document.getElementById('f-ingredients').value);
+    fd.append('howToUse', document.getElementById('f-howto').value);
+    fd.append('benefits', document.getElementById('f-benefits').value);
+    fd.append('inStock', document.getElementById('f-instock').checked);
+    fd.append('featured', document.getElementById('f-featured').checked);
+    const imageFile = document.getElementById('f-image').files[0];
+    if (imageFile) fd.append('image', imageFile);
+
+    let res;
+    if (editingId) {
+      // For edit, use JSON (no new image) or FormData (with image)
+      if (imageFile) {
+        res = await fetch('/api/products/' + editingId + '/image', {method:'POST', body: new FormData((() => {const f = new FormData(); f.append('image', imageFile); return f;})())});
+      }
+      // Update product data
+      const body = {
+        name, category, price: parseFloat(price),
+        originalPrice: parseFloat(document.getElementById('f-original-price').value) || null,
+        weight: document.getElementById('f-weight').value,
+        badge: document.getElementById('f-badge').value,
+        description,
+        ingredients: document.getElementById('f-ingredients').value,
+        howToUse: document.getElementById('f-howto').value,
+        benefits: document.getElementById('f-benefits').value,
+        inStock: document.getElementById('f-instock').checked,
+        featured: document.getElementById('f-featured').checked
+      };
+      if (imageFile) {
+        const imgFd = new FormData();
+        imgFd.append('image', imageFile);
+        await fetch('/api/products/' + editingId + '/image', {method:'POST', body: imgFd});
+      }
+      res = await fetch('/api/products/' + editingId, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    } else {
+      res = await fetch('/api/products', {method:'POST', body: fd});
+    }
+    const data = await res.json();
+    if (data.success) {
+      closeModal();
+      showAlert('Product ' + (editingId ? 'updated' : 'added') + ' successfully! ✅', 'success');
+      await loadProducts();
+    } else {
+      alertDiv.innerHTML = '<div class="adm-alert adm-alert-error">' + (data.error || 'Save failed') + '</div>';
+    }
+    btn.innerHTML = '<i class="fa fa-save"></i> Save Product';
+    btn.disabled = false;
+  }
+
+  function openDeleteModal(id, name) {
+    deleteId = id;
+    document.getElementById('delete-name').textContent = 'Are you sure you want to delete "' + name + '"? This cannot be undone.';
+    document.getElementById('delete-modal').classList.remove('hidden');
+  }
+
+  async function confirmDelete() {
+    if (!deleteId) return;
+    const res = await fetch('/api/products/' + deleteId, {method:'DELETE'});
+    const data = await res.json();
+    document.getElementById('delete-modal').classList.add('hidden');
+    if (data.success) {
+      showAlert('Product deleted.', 'success');
+      await loadProducts();
+    } else {
+      showAlert('Delete failed: ' + data.error, 'error');
+    }
+    deleteId = null;
+  }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('page-alert');
+    el.innerHTML = `<div class="adm-alert adm-alert-${type}">${msg}</div>`;
+    setTimeout(() => el.innerHTML = '', 4000);
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', {method:'POST'});
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>

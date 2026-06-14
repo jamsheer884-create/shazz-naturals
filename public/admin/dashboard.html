@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – Shazz Natural's</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <!-- Sidebar -->
+  <aside class="adm-sidebar" id="sidebar">
+    <div class="adm-sidebar-logo">
+      <div class="brand">🌿 Shazz Natural's</div>
+      <div class="sub">Admin Panel</div>
+    </div>
+    <nav class="adm-nav">
+      <div class="adm-nav-section">Main</div>
+      <a href="/admin/dashboard.html" class="active"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <div class="adm-nav-section">Settings</div>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Site Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a>
+      <br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title">
+        <h1>Dashboard</h1>
+        <p>Welcome back, Admin! Here's an overview of your store.</p>
+      </div>
+      <div class="adm-topbar-actions">
+        <a href="/admin/products.html" class="adm-btn adm-btn-primary"><i class="fa fa-plus"></i> Add Product</a>
+        <div class="adm-user-badge">
+          <div class="adm-avatar">A</div>
+          <span>Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-content">
+      <!-- Stats -->
+      <div class="adm-stats-grid">
+        <div class="adm-stat-card">
+          <div class="adm-stat-icon icon-green"><i class="fa fa-box" style="color:#1b5e20"></i></div>
+          <div>
+            <div class="adm-stat-num" id="stat-products">—</div>
+            <div class="adm-stat-label">Total Products</div>
+          </div>
+        </div>
+        <div class="adm-stat-card">
+          <div class="adm-stat-icon icon-blue"><i class="fa fa-shopping-cart" style="color:#1565c0"></i></div>
+          <div>
+            <div class="adm-stat-num" id="stat-orders">—</div>
+            <div class="adm-stat-label">Total Orders</div>
+          </div>
+        </div>
+        <div class="adm-stat-card">
+          <div class="adm-stat-icon icon-gold"><i class="fa fa-users" style="color:#c8860a"></i></div>
+          <div>
+            <div class="adm-stat-num" id="stat-customers">—</div>
+            <div class="adm-stat-label">Customers</div>
+          </div>
+        </div>
+        <div class="adm-stat-card">
+          <div class="adm-stat-icon icon-red"><i class="fa fa-rupee-sign" style="color:#c62828"></i></div>
+          <div>
+            <div class="adm-stat-num" id="stat-revenue">—</div>
+            <div class="adm-stat-label">Total Revenue</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2>Quick Actions</h2></div>
+        <div class="adm-card-body" style="display:flex;gap:12px;flex-wrap:wrap">
+          <a href="/admin/products.html" class="adm-btn adm-btn-primary adm-btn-lg"><i class="fa fa-plus"></i> Add New Product</a>
+          <a href="/admin/products.html" class="adm-btn adm-btn-secondary"><i class="fa fa-edit"></i> Manage Products</a>
+          <a href="/admin/orders.html" class="adm-btn adm-btn-outline"><i class="fa fa-list"></i> View Orders</a>
+          <a href="/admin/settings.html" class="adm-btn adm-btn-outline"><i class="fa fa-cog"></i> Site Settings</a>
+          <a href="/" target="_blank" class="adm-btn adm-btn-outline"><i class="fa fa-eye"></i> View Website</a>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <h2>Recent Orders</h2>
+          <a href="/admin/orders.html" class="adm-btn adm-btn-outline adm-btn-sm">View All</a>
+        </div>
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="recent-orders">
+              <tr><td colspan="6" style="text-align:center;padding:30px;color:#888">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- WhatsApp Direct Link -->
+      <div class="adm-card" style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border-color:#a5d6a7">
+        <div class="adm-card-body" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div style="font-size:2.5rem">📱</div>
+          <div style="flex:1">
+            <h3 style="color:#1b5e20;margin-bottom:4px">WhatsApp Business</h3>
+            <p style="color:#555;font-size:0.85rem">Customers send orders directly to your WhatsApp. Click below to open your WhatsApp.</p>
+          </div>
+          <a href="https://wa.me/917902302884" target="_blank" class="adm-btn adm-btn-primary">
+            <i class="fab fa-whatsapp"></i> Open WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Auth check
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    // Load stats
+    const stats = await fetch('/api/admin/stats').then(r => r.json());
+    document.getElementById('stat-products').textContent = stats.products || 0;
+    document.getElementById('stat-orders').textContent = stats.orders || 0;
+    document.getElementById('stat-customers').textContent = stats.customers || 0;
+    document.getElementById('stat-revenue').textContent = '₹' + (stats.revenue || 0);
+    // Recent orders
+    const orders = stats.recentOrders || [];
+    const tbody = document.getElementById('recent-orders');
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#888">No orders yet.</td></tr>';
+    } else {
+      tbody.innerHTML = orders.map(o => `
+        <tr>
+          <td><strong>${o.id}</strong></td>
+          <td>${o.customerName || '—'}<br><small style="color:#888">${o.customerPhone || ''}</small></td>
+          <td><small>${(o.items || []).map(i => i.name).join(', ')}</small></td>
+          <td><strong>₹${o.total}</strong></td>
+          <td><span class="adm-badge badge-${statusClass(o.status)}">${o.status}</span></td>
+          <td><small>${new Date(o.createdAt).toLocaleDateString('en-IN')}</small></td>
+        </tr>`).join('');
+    }
+  });
+
+  function statusClass(s) {
+    const map = {'Pending':'yellow','Confirmed':'green','Shipped':'blue','Delivered':'green','Cancelled':'red'};
+    return map[s] || 'grey';
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', {method:'POST'});
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>
