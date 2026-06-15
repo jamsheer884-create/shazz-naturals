@@ -957,6 +957,60 @@ footer {
 .alert-error { background: #ffebee; color: #b71c1c; border-left: 4px solid #b71c1c; }
 .alert-info { background: #e3f2fd; color: #1565c0; border-left: 4px solid #1565c0; }
 
+/* ─── Device Preview Toggle ─── */
+.device-toggle {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  background: rgba(255,255,255,0.97);
+  border-radius: 30px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.07);
+  z-index: 99998;
+}
+.dt-btn {
+  border: none;
+  background: transparent;
+  padding: 7px 15px;
+  border-radius: 22px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.22s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.dt-btn.dt-active { background: #1b5e20; color: white; box-shadow: 0 2px 8px rgba(27,94,32,0.35); }
+.dt-btn:hover:not(.dt-active) { background: #f0f0f0; }
+
+/* Mobile preview mode */
+html.mobile-preview { background: #1f2937 !important; }
+html.mobile-preview body {
+  width: 390px !important;
+  max-width: 390px !important;
+  margin: 24px auto 80px !important;
+  border-radius: 28px !important;
+  box-shadow: 0 0 0 10px #111827, 0 0 0 12px #374151, 0 30px 80px rgba(0,0,0,0.7) !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+}
+/* Notch bar on top of phone frame */
+html.mobile-preview body::before {
+  content: '';
+  display: block;
+  width: 120px;
+  height: 6px;
+  background: #374151;
+  border-radius: 3px;
+  margin: 10px auto 0;
+}
+
 /* ─── Loading Spinner ─── */
 .spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
 .spinner-sm { width: 20px; height: 20px; border-width: 2px; }

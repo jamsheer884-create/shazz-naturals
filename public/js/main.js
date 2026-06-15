@@ -230,6 +230,35 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// ─── Device Preview Toggle ───
+function setDeviceView(mode) {
+  const html = document.documentElement;
+  const pcBtn = document.getElementById('dt-pc');
+  const mbBtn = document.getElementById('dt-mobile');
+  if (mode === 'mobile') {
+    html.classList.add('mobile-preview');
+    if (pcBtn) pcBtn.classList.remove('dt-active');
+    if (mbBtn) mbBtn.classList.add('dt-active');
+  } else {
+    html.classList.remove('mobile-preview');
+    if (pcBtn) pcBtn.classList.add('dt-active');
+    if (mbBtn) mbBtn.classList.remove('dt-active');
+  }
+  localStorage.setItem('deviceView', mode);
+  window.scrollTo(0, 0);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const toggle = document.createElement('div');
+  toggle.className = 'device-toggle';
+  toggle.innerHTML = `
+    <button class="dt-btn dt-active" id="dt-pc" onclick="setDeviceView('pc')">🖥 PC</button>
+    <button class="dt-btn" id="dt-mobile" onclick="setDeviceView('mobile')">📱 Mobile</button>
+  `;
+  document.body.appendChild(toggle);
+  if (localStorage.getItem('deviceView') === 'mobile') setDeviceView('mobile');
+});
+
 // ─── Product Showcase Slider ───
 let pssIndex = 0;
 let pssTimer = null;
