@@ -1011,25 +1011,49 @@ html.mobile-preview body::before {
   margin: 10px auto 0;
 }
 
-/* Mobile preview — apply same rules as @media max-width:768px */
-html.mobile-preview .pss-wrapper { height: 230px !important; }
-html.mobile-preview .pss-content { left: 16px !important; bottom: 20px !important; max-width: 280px !important; }
-html.mobile-preview .pss-title { font-size: 1.2rem !important; margin-bottom: 6px !important; }
-html.mobile-preview .pss-sub { font-size: 0.78rem !important; margin-bottom: 12px !important; }
-html.mobile-preview .pss-btn { padding: 8px 18px !important; font-size: 0.8rem !important; }
-html.mobile-preview .pss-arrow { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
-html.mobile-preview .pss-prev { left: 8px !important; }
-html.mobile-preview .pss-next { right: 8px !important; }
-html.mobile-preview .hero-section, html.mobile-preview .hero { flex-direction: column !important; min-height: auto !important; }
+/* Mobile preview — clip everything to phone frame */
+html.mobile-preview { overflow-x: hidden !important; }
+html.mobile-preview body * { max-width: 100% !important; box-sizing: border-box !important; }
+
+/* Sections & containers */
+html.mobile-preview section,
+html.mobile-preview .container,
+html.mobile-preview .trust-bar,
+html.mobile-preview .hero,
+html.mobile-preview .pss-section { width: 100% !important; overflow: hidden !important; }
+
+/* Trust bar — wrap items into 2 columns */
+html.mobile-preview .trust-bar-inner { flex-wrap: wrap !important; justify-content: center !important; gap: 0 !important; }
+html.mobile-preview .trust-item { flex: 1 1 48% !important; min-width: 130px !important; padding: 14px 8px !important; font-size: 0.8rem !important; }
+
+/* Banner slider */
+html.mobile-preview .pss-wrapper { height: 220px !important; }
+html.mobile-preview .pss-content { left: 14px !important; bottom: 18px !important; max-width: 260px !important; }
+html.mobile-preview .pss-title { font-size: 1.15rem !important; margin-bottom: 5px !important; }
+html.mobile-preview .pss-sub { font-size: 0.76rem !important; margin-bottom: 10px !important; }
+html.mobile-preview .pss-btn { padding: 7px 16px !important; font-size: 0.78rem !important; }
+html.mobile-preview .pss-arrow { width: 30px !important; height: 30px !important; font-size: 0.8rem !important; }
+html.mobile-preview .pss-prev { left: 6px !important; }
+html.mobile-preview .pss-next { right: 6px !important; }
+
+/* Hero section */
 html.mobile-preview .nav-links { display: none !important; }
-html.mobile-preview .hero-img-frame { width: 220px !important; height: 220px !important; margin: 0 auto !important; }
-html.mobile-preview .hero-content { flex-direction: column !important; padding: 20px 16px !important; gap: 24px !important; text-align: center !important; }
-html.mobile-preview .hero-text h1 { font-size: 2rem !important; }
+html.mobile-preview .hero { min-height: auto !important; }
+html.mobile-preview .hero-content { flex-direction: column !important; padding: 20px 16px !important; gap: 20px !important; text-align: center !important; }
+html.mobile-preview .hero-text h1 { font-size: 1.9rem !important; }
+html.mobile-preview .hero-img-frame { width: 200px !important; height: 200px !important; margin: 0 auto !important; }
 html.mobile-preview .hero-btns { justify-content: center !important; flex-wrap: wrap !important; }
 html.mobile-preview .hero-stats { justify-content: center !important; flex-wrap: wrap !important; gap: 12px !important; }
+
+/* Categories */
 html.mobile-preview .categories-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
+
+/* About */
 html.mobile-preview .about-grid { grid-template-columns: 1fr !important; }
-html.mobile-preview .about-img-placeholder, html.mobile-preview #about-image-img { height: 220px !important; }
+html.mobile-preview .about-img-placeholder,
+html.mobile-preview #about-image-img { height: 200px !important; }
+
+/* Footer */
 html.mobile-preview .footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
 
 /* ─── Loading Spinner ─── */
