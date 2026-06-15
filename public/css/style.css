@@ -1011,6 +1011,27 @@ html.mobile-preview body::before {
   margin: 10px auto 0;
 }
 
+/* Mobile preview — apply same rules as @media max-width:768px */
+html.mobile-preview .pss-wrapper { height: 230px !important; }
+html.mobile-preview .pss-content { left: 16px !important; bottom: 20px !important; max-width: 280px !important; }
+html.mobile-preview .pss-title { font-size: 1.2rem !important; margin-bottom: 6px !important; }
+html.mobile-preview .pss-sub { font-size: 0.78rem !important; margin-bottom: 12px !important; }
+html.mobile-preview .pss-btn { padding: 8px 18px !important; font-size: 0.8rem !important; }
+html.mobile-preview .pss-arrow { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
+html.mobile-preview .pss-prev { left: 8px !important; }
+html.mobile-preview .pss-next { right: 8px !important; }
+html.mobile-preview .hero-section, html.mobile-preview .hero { flex-direction: column !important; min-height: auto !important; }
+html.mobile-preview .nav-links { display: none !important; }
+html.mobile-preview .hero-img-frame { width: 220px !important; height: 220px !important; margin: 0 auto !important; }
+html.mobile-preview .hero-content { flex-direction: column !important; padding: 20px 16px !important; gap: 24px !important; text-align: center !important; }
+html.mobile-preview .hero-text h1 { font-size: 2rem !important; }
+html.mobile-preview .hero-btns { justify-content: center !important; flex-wrap: wrap !important; }
+html.mobile-preview .hero-stats { justify-content: center !important; flex-wrap: wrap !important; gap: 12px !important; }
+html.mobile-preview .categories-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
+html.mobile-preview .about-grid { grid-template-columns: 1fr !important; }
+html.mobile-preview .about-img-placeholder, html.mobile-preview #about-image-img { height: 220px !important; }
+html.mobile-preview .footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+
 /* ─── Loading Spinner ─── */
 .spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
 .spinner-sm { width: 20px; height: 20px; border-width: 2px; }
