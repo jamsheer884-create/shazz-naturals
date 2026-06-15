@@ -242,14 +242,14 @@ function pssGo(n) {
   if (track) track.style.transform = `translateX(-${pssIndex * 100}%)`;
   document.querySelectorAll('.pss-dot').forEach((d, i) => d.classList.toggle('active', i === pssIndex));
   clearInterval(pssTimer);
-  pssTimer = setInterval(() => pssGo(pssIndex + 1), 4000);
+  pssTimer = setInterval(() => pssGo(pssIndex + 1), 6000);
 }
 
 function pssMove(dir) { pssGo(pssIndex + dir); }
 
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('pss-track')) {
-    pssTimer = setInterval(() => pssGo(pssIndex + 1), 4000);
+    pssTimer = setInterval(() => pssGo(pssIndex + 1), 6000);
   }
 });
 
