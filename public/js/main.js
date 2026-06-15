@@ -48,17 +48,18 @@ function applySettingsToPage(s) {
       if (!slide) return;
       const bg = document.getElementById('pss-bg-' + i);
       if (bg && slide.image) bg.innerHTML = `<img src="${slide.image}" style="width:100%;height:100%;object-fit:cover"/>`;
-      const hasText = !!(slide.title || slide.subtitle);
       const contentEl = document.getElementById('pss-content-' + i);
       const overlayEl = document.getElementById('pss-overlay-' + i);
       const labelEl = document.getElementById('pss-label-' + i);
       const titleEl = document.getElementById('pss-title-' + i);
       const subEl = document.getElementById('pss-sub-' + i);
-      if (titleEl) titleEl.textContent = slide.title || '';
-      if (subEl) subEl.textContent = slide.subtitle || '';
-      if (labelEl) labelEl.textContent = slide.label || 'Shazz Natural\'s';
-      if (contentEl) contentEl.style.display = hasText ? '' : 'none';
-      if (overlayEl) overlayEl.style.display = hasText ? '' : 'none';
+      // Always show content area (Shop Now button always visible when image uploaded)
+      if (contentEl) contentEl.style.display = slide.image ? '' : 'none';
+      if (overlayEl) overlayEl.style.display = slide.image ? '' : 'none';
+      // Text elements only show when user has saved them
+      if (labelEl) { labelEl.textContent = slide.label || ''; labelEl.style.display = slide.label ? '' : 'none'; }
+      if (titleEl) { titleEl.textContent = slide.title || ''; titleEl.style.display = slide.title ? '' : 'none'; }
+      if (subEl) { subEl.textContent = slide.subtitle || ''; subEl.style.display = slide.subtitle ? '' : 'none'; }
     });
   }
   // Update about section image
