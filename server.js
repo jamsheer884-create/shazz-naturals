@@ -83,7 +83,7 @@ const SettingsSchema = new mongoose.Schema({
   freeShippingAbove: { type: Number, default: 500 },
   shippingCharge:    { type: Number, default: 60 },
   categoryImages:    { type: mongoose.Schema.Types.Mixed, default: {} },
-  heroSlides:        { type: mongoose.Schema.Types.Mixed, default: [{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''}] },
+  heroSlides:        { type: mongoose.Schema.Types.Mixed, default: [{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''}] },
 }, { timestamps: true });
 
 const Product  = mongoose.model('Product',  ProductSchema);
@@ -317,7 +317,7 @@ app.post('/api/settings/slide-image/:index', requireAdmin, upload.single('slideI
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     const idx = parseInt(req.params.index);
-    if (isNaN(idx) || idx < 0 || idx > 4) return res.status(400).json({ error: 'Invalid slide index' });
+    if (isNaN(idx) || idx < 0 || idx > 6) return res.status(400).json({ error: 'Invalid slide index' });
     const url = getImageUrl(req.file);
     const s = await Settings.findOne({ key: 'main' });
     const slides = s && s.heroSlides ? JSON.parse(JSON.stringify(s.heroSlides)) : [{},{},{},{},{}];
@@ -331,7 +331,7 @@ app.post('/api/settings/slide-image/:index', requireAdmin, upload.single('slideI
 app.post('/api/settings/slide-text/:index', requireAdmin, async (req, res) => {
   try {
     const idx = parseInt(req.params.index);
-    if (isNaN(idx) || idx < 0 || idx > 4) return res.status(400).json({ error: 'Invalid slide index' });
+    if (isNaN(idx) || idx < 0 || idx > 6) return res.status(400).json({ error: 'Invalid slide index' });
     const { title, subtitle, label } = req.body;
     const s = await Settings.findOne({ key: 'main' });
     const slides = s && s.heroSlides ? JSON.parse(JSON.stringify(s.heroSlides)) : [{},{},{},{},{}];
