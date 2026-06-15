@@ -246,7 +246,11 @@ function setDeviceView(mode) {
     if (mbBtn) mbBtn.classList.remove('dt-active');
   }
   localStorage.setItem('deviceView', mode);
-  window.scrollTo(0, 0);
+  if (mode === 'mobile') {
+    document.body.scrollTop = 0;
+  } else {
+    window.scrollTo(0, 0);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
