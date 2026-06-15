@@ -1012,7 +1012,7 @@ html.mobile-preview body::before {
 }
 
 /* ── Mobile preview: hard clip to phone frame ── */
-html.mobile-preview { overflow: hidden !important; }
+html.mobile-preview { overflow-x: hidden !important; overflow-y: auto !important; }
 html.mobile-preview body { overflow-x: hidden !important; }
 
 /* Force every child into the 390px box */
