@@ -107,8 +107,9 @@
               </div>
               <div style="flex:1;min-width:200px">
                 <div style="font-weight:600;margin-bottom:10px;color:#1b5e20">Slide 1</div>
-                <input id="slide-title-input-0" type="text" placeholder="Title (e.g. Kerala Papaya Face Gel)" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
-                <input id="slide-sub-input-0" type="text" placeholder="Subtitle (e.g. 100% Natural · ₹299)" style="width:100%;margin-bottom:10px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
+                <input id="slide-label-input-0" type="text" placeholder="Badge label (e.g. New Arrival)" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
+                <input id="slide-title-input-0" type="text" placeholder="Title (e.g. Handmade Soap Collection)" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
+                <input id="slide-sub-input-0" type="text" placeholder="Subtitle (e.g. Pure · Natural · Handcrafted)" style="width:100%;margin-bottom:10px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                   <label class="adm-btn adm-btn-secondary adm-btn-sm" style="cursor:pointer"><i class="fa fa-upload"></i> Upload Photo<input type="file" accept="image/*" style="display:none" onchange="uploadSlideImage(0,event)"/></label>
                   <button class="adm-btn adm-btn-sm" onclick="saveSlideText(0)" style="background:var(--primary);color:white;border:none;cursor:pointer"><i class="fa fa-save"></i> Save Text</button>
@@ -122,6 +123,7 @@
               </div>
               <div style="flex:1;min-width:200px">
                 <div style="font-weight:600;margin-bottom:10px;color:#1b5e20">Slide 2</div>
+                <input id="slide-label-input-1" type="text" placeholder="Badge label (e.g. Best Seller)" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-title-input-1" type="text" placeholder="Title" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-sub-input-1" type="text" placeholder="Subtitle" style="width:100%;margin-bottom:10px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -137,6 +139,7 @@
               </div>
               <div style="flex:1;min-width:200px">
                 <div style="font-weight:600;margin-bottom:10px;color:#1b5e20">Slide 3</div>
+                <input id="slide-label-input-2" type="text" placeholder="Badge label" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-title-input-2" type="text" placeholder="Title" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-sub-input-2" type="text" placeholder="Subtitle" style="width:100%;margin-bottom:10px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -152,6 +155,7 @@
               </div>
               <div style="flex:1;min-width:200px">
                 <div style="font-weight:600;margin-bottom:10px;color:#1b5e20">Slide 4</div>
+                <input id="slide-label-input-3" type="text" placeholder="Badge label" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-title-input-3" type="text" placeholder="Title" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-sub-input-3" type="text" placeholder="Subtitle" style="width:100%;margin-bottom:10px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -167,6 +171,7 @@
               </div>
               <div style="flex:1;min-width:200px">
                 <div style="font-weight:600;margin-bottom:10px;color:#1b5e20">Slide 5</div>
+                <input id="slide-label-input-4" type="text" placeholder="Badge label" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-title-input-4" type="text" placeholder="Title" style="width:100%;margin-bottom:8px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <input id="slide-sub-input-4" type="text" placeholder="Subtitle" style="width:100%;margin-bottom:10px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem"/>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -387,6 +392,8 @@
         if (!slide) return;
         const prev = document.getElementById('slide-prev-' + i);
         if (prev && slide.image) prev.src = slide.image;
+        const li = document.getElementById('slide-label-input-' + i);
+        if (li && slide.label) li.value = slide.label;
         const ti = document.getElementById('slide-title-input-' + i);
         if (ti && slide.title) ti.value = slide.title;
         const si = document.getElementById('slide-sub-input-' + i);
@@ -469,10 +476,11 @@
   async function saveSlideText(idx) {
     const title = document.getElementById('slide-title-input-' + idx)?.value || '';
     const subtitle = document.getElementById('slide-sub-input-' + idx)?.value || '';
+    const label = document.getElementById('slide-label-input-' + idx)?.value || '';
     const res = await fetch('/api/settings/slide-text/' + idx, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ title, subtitle })
+      body: JSON.stringify({ title, subtitle, label })
     });
     const data = await res.json();
     if (data.success) {

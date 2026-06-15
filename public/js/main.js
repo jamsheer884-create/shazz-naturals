@@ -48,10 +48,17 @@ function applySettingsToPage(s) {
       if (!slide) return;
       const bg = document.getElementById('pss-bg-' + i);
       if (bg && slide.image) bg.innerHTML = `<img src="${slide.image}" style="width:100%;height:100%;object-fit:cover"/>`;
-      const title = document.getElementById('pss-title-' + i);
-      if (title && slide.title) title.textContent = slide.title;
-      const sub = document.getElementById('pss-sub-' + i);
-      if (sub && slide.subtitle) sub.textContent = slide.subtitle;
+      const hasText = !!(slide.title || slide.subtitle);
+      const contentEl = document.getElementById('pss-content-' + i);
+      const overlayEl = document.getElementById('pss-overlay-' + i);
+      const labelEl = document.getElementById('pss-label-' + i);
+      const titleEl = document.getElementById('pss-title-' + i);
+      const subEl = document.getElementById('pss-sub-' + i);
+      if (titleEl) titleEl.textContent = slide.title || '';
+      if (subEl) subEl.textContent = slide.subtitle || '';
+      if (labelEl) labelEl.textContent = slide.label || 'Shazz Natural\'s';
+      if (contentEl) contentEl.style.display = hasText ? '' : 'none';
+      if (overlayEl) overlayEl.style.display = hasText ? '' : 'none';
     });
   }
   // Update about section image

@@ -320,7 +320,7 @@ app.post('/api/settings/slide-image/:index', requireAdmin, upload.single('slideI
     if (isNaN(idx) || idx < 0 || idx > 4) return res.status(400).json({ error: 'Invalid slide index' });
     const url = getImageUrl(req.file);
     const s = await Settings.findOne({ key: 'main' });
-    const slides = s && s.heroSlides ? [...s.heroSlides] : [{},{},{},{},{}];
+    const slides = s && s.heroSlides ? JSON.parse(JSON.stringify(s.heroSlides)) : [{},{},{},{},{}];
     while (slides.length < 5) slides.push({});
     slides[idx] = { ...slides[idx], image: url };
     await Settings.findOneAndUpdate({ key: 'main' }, { $set: { heroSlides: slides } }, { new: true, upsert: true });
@@ -332,11 +332,11 @@ app.post('/api/settings/slide-text/:index', requireAdmin, async (req, res) => {
   try {
     const idx = parseInt(req.params.index);
     if (isNaN(idx) || idx < 0 || idx > 4) return res.status(400).json({ error: 'Invalid slide index' });
-    const { title, subtitle } = req.body;
+    const { title, subtitle, label } = req.body;
     const s = await Settings.findOne({ key: 'main' });
-    const slides = s && s.heroSlides ? [...s.heroSlides] : [{},{},{},{},{}];
+    const slides = s && s.heroSlides ? JSON.parse(JSON.stringify(s.heroSlides)) : [{},{},{},{},{}];
     while (slides.length < 5) slides.push({});
-    slides[idx] = { ...slides[idx], title: title || '', subtitle: subtitle || '' };
+    slides[idx] = { ...slides[idx], title: title || '', subtitle: subtitle || '', label: label || '' };
     await Settings.findOneAndUpdate({ key: 'main' }, { $set: { heroSlides: slides } }, { new: true, upsert: true });
     res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
