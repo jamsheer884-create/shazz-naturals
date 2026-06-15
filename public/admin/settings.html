@@ -516,7 +516,7 @@
     });
     const data = await res.json();
     if (data.success) {
-      showAlert('Slide ' + (idx + 1) + ' text saved! ✅', 'success');
+      showAlert('Slide ' + (idx + 1) + ' text saved! ✅ Title: "' + (data.title || '(empty)') + '"', 'success');
     } else {
       showAlert('Save failed: ' + (data.error || 'Unknown error'), 'error');
     }
