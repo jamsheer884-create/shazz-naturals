@@ -42,6 +42,18 @@ function applySettingsToPage(s) {
     if (img) { img.src = s.heroImage; img.style.display = 'block'; }
     if (placeholder) placeholder.style.display = 'none';
   }
+  // Update product showcase slides
+  if (s.heroSlides && Array.isArray(s.heroSlides)) {
+    s.heroSlides.forEach((slide, i) => {
+      if (!slide) return;
+      const bg = document.getElementById('pss-bg-' + i);
+      if (bg && slide.image) bg.innerHTML = `<img src="${slide.image}" style="width:100%;height:100%;object-fit:cover"/>`;
+      const title = document.getElementById('pss-title-' + i);
+      if (title && slide.title) title.textContent = slide.title;
+      const sub = document.getElementById('pss-sub-' + i);
+      if (sub && slide.subtitle) sub.textContent = slide.subtitle;
+    });
+  }
   // Update about section image
   if (s.aboutImage) {
     const img = document.getElementById('about-image-img');
@@ -209,6 +221,29 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+});
+
+// ─── Product Showcase Slider ───
+let pssIndex = 0;
+let pssTimer = null;
+
+function pssGo(n) {
+  const slides = document.querySelectorAll('.pss-slide');
+  if (!slides.length) return;
+  pssIndex = ((n % slides.length) + slides.length) % slides.length;
+  const track = document.getElementById('pss-track');
+  if (track) track.style.transform = `translateX(-${pssIndex * 100}%)`;
+  document.querySelectorAll('.pss-dot').forEach((d, i) => d.classList.toggle('active', i === pssIndex));
+  clearInterval(pssTimer);
+  pssTimer = setInterval(() => pssGo(pssIndex + 1), 4000);
+}
+
+function pssMove(dir) { pssGo(pssIndex + dir); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('pss-track')) {
+    pssTimer = setInterval(() => pssGo(pssIndex + 1), 4000);
+  }
 });
 
 // ─── Add CSS for spinner ───

@@ -83,6 +83,7 @@ const SettingsSchema = new mongoose.Schema({
   freeShippingAbove: { type: Number, default: 500 },
   shippingCharge:    { type: Number, default: 60 },
   categoryImages:    { type: mongoose.Schema.Types.Mixed, default: {} },
+  heroSlides:        { type: mongoose.Schema.Types.Mixed, default: [{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''}] },
 }, { timestamps: true });
 
 const Product  = mongoose.model('Product',  ProductSchema);
@@ -309,6 +310,35 @@ app.post('/api/settings/about-image', requireAdmin, upload.single('aboutImage'),
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
     const s = await Settings.findOneAndUpdate({ key: 'main' }, { aboutImage: getImageUrl(req.file) }, { new: true, upsert: true });
     res.json({ success: true, aboutImage: s.aboutImage });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/settings/slide-image/:index', requireAdmin, upload.single('slideImage'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+    const idx = parseInt(req.params.index);
+    if (isNaN(idx) || idx < 0 || idx > 4) return res.status(400).json({ error: 'Invalid slide index' });
+    const url = getImageUrl(req.file);
+    const s = await Settings.findOne({ key: 'main' });
+    const slides = s && s.heroSlides ? [...s.heroSlides] : [{},{},{},{},{}];
+    while (slides.length < 5) slides.push({});
+    slides[idx] = { ...slides[idx], image: url };
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { heroSlides: slides } }, { new: true, upsert: true });
+    res.json({ success: true, index: idx, url });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/settings/slide-text/:index', requireAdmin, async (req, res) => {
+  try {
+    const idx = parseInt(req.params.index);
+    if (isNaN(idx) || idx < 0 || idx > 4) return res.status(400).json({ error: 'Invalid slide index' });
+    const { title, subtitle } = req.body;
+    const s = await Settings.findOne({ key: 'main' });
+    const slides = s && s.heroSlides ? [...s.heroSlides] : [{},{},{},{},{}];
+    while (slides.length < 5) slides.push({});
+    slides[idx] = { ...slides[idx], title: title || '', subtitle: subtitle || '' };
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { heroSlides: slides } }, { new: true, upsert: true });
+    res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
