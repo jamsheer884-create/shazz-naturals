@@ -39,7 +39,7 @@
         <div class="adm-card-body">
           <div class="settings-section">
             <div class="logo-preview-wrap">
-              <div class="logo-preview"><img id="logo-preview-img" src="" alt="Logo" onerror="this.parentElement.innerHTML='<span style=font-size:2rem>🌿</span>'"/></div>
+              <div class="logo-preview" style="position:relative;display:flex;align-items:center;justify-content:center;font-size:2rem">🌿<img id="logo-preview-img" alt="Logo" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" onerror="this.style.display='none'"/></div>
               <div>
                 <p style="font-size:0.85rem;color:#666;margin-bottom:10px">Shown in the top navigation bar on every page.<br>Recommended: PNG with transparent background, min 200x200px.</p>
                 <label class="adm-btn adm-btn-secondary" style="cursor:pointer">
@@ -58,8 +58,8 @@
         <div class="adm-card-body">
           <div class="settings-section">
             <div class="logo-preview-wrap">
-              <div class="logo-preview" style="width:120px;height:120px;border-radius:12px;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">
-                <img id="hero-image-preview" src="" alt="Hero Image" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<span style=font-size:2rem>📸</span>'"/>
+              <div class="logo-preview" style="width:120px;height:120px;border-radius:12px;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:2rem;position:relative">📸
+                <img id="hero-image-preview" alt="Hero Image" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" onerror="this.style.display='none'"/>
               </div>
               <div>
                 <p style="font-size:0.85rem;color:#666;margin-bottom:10px">Shown in the animated frame on the homepage.<br>Recommended: square image, min 400x400px. JPG or PNG.</p>
@@ -79,8 +79,8 @@
         <div class="adm-card-body">
           <div class="settings-section">
             <div class="logo-preview-wrap">
-              <div class="logo-preview" style="width:120px;height:120px;border-radius:12px;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center">
-                <img id="about-image-preview" src="" alt="About Image" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<span style=font-size:2rem>🌴</span>'"/>
+              <div class="logo-preview" style="width:120px;height:120px;border-radius:12px;overflow:hidden;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:2rem;position:relative">🌴
+                <img id="about-image-preview" alt="About Image" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" onerror="this.style.display='none'"/>
               </div>
               <div>
                 <p style="font-size:0.85rem;color:#666;margin-bottom:10px">Fills the green area in the "Born from Kerala's Natural Abundance" section.<br>Recommended: portrait or square image, min 400x400px. JPG or PNG.</p>
@@ -435,9 +435,9 @@
 
   async function loadSettings() {
     const s = await fetch('/api/settings').then(r => r.json());
-    document.getElementById('logo-preview-img').src = s.logo || '';
-    if (s.heroImage) document.getElementById('hero-image-preview').src = s.heroImage;
-    if (s.aboutImage) document.getElementById('about-image-preview').src = s.aboutImage;
+    if (s.logo) { const li = document.getElementById('logo-preview-img'); li.src = s.logo; li.style.display = 'block'; }
+    if (s.heroImage) { const hi = document.getElementById('hero-image-preview'); hi.src = s.heroImage; hi.style.display = 'block'; }
+    if (s.aboutImage) { const ai = document.getElementById('about-image-preview'); ai.src = s.aboutImage; ai.style.display = 'block'; }
     if (s.heroSlides && Array.isArray(s.heroSlides)) {
       s.heroSlides.forEach((slide, i) => {
         if (!slide) return;
@@ -484,7 +484,9 @@
     const res = await fetch('/api/settings/logo', {method:'POST', body: fd});
     const data = await res.json();
     if (data.success) {
-      document.getElementById('logo-preview-img').src = data.logo + '?t=' + Date.now();
+      const li = document.getElementById('logo-preview-img');
+      li.src = data.logo + '?t=' + Date.now();
+      li.style.display = 'block';
       showAlert('Logo updated successfully! ✅', 'success');
     } else {
       showAlert('Logo upload failed: ' + (data.error || 'Unknown error'), 'error');
@@ -551,7 +553,9 @@
     const res = await fetch('/api/settings/about-image', {method:'POST', body: fd});
     const data = await res.json();
     if (data.success) {
-      document.getElementById('about-image-preview').src = data.aboutImage + '?t=' + Date.now();
+      const ai = document.getElementById('about-image-preview');
+      ai.src = data.aboutImage + '?t=' + Date.now();
+      ai.style.display = 'block';
       showAlert('About image updated successfully! ✅', 'success');
     } else {
       showAlert('Upload failed: ' + (data.error || 'Unknown error'), 'error');
@@ -567,7 +571,9 @@
     const res = await fetch('/api/settings/hero-image', {method:'POST', body: fd});
     const data = await res.json();
     if (data.success) {
-      document.getElementById('hero-image-preview').src = data.heroImage + '?t=' + Date.now();
+      const hi = document.getElementById('hero-image-preview');
+      hi.src = data.heroImage + '?t=' + Date.now();
+      hi.style.display = 'block';
       showAlert('Hero image updated successfully! ✅', 'success');
     } else {
       showAlert('Upload failed: ' + (data.error || 'Unknown error'), 'error');
