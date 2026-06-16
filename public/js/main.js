@@ -254,6 +254,7 @@ function setDeviceView(mode) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.innerWidth <= 768) return; // real phones already get the responsive layout; this preview is a desktop-only tool
   const toggle = document.createElement('div');
   toggle.className = 'device-toggle';
   toggle.innerHTML = `
