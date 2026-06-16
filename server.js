@@ -74,6 +74,7 @@ const SettingsSchema = new mongoose.Schema({
   aboutImage:        { type: String, default: '' },
   phone:             { type: String, default: '+91 79023 02884' },
   whatsapp:          { type: String, default: '917902302884' },
+  callmebotApiKey:   { type: String, default: '' },
   email:             { type: String, default: 'shazznaturals@gmail.com' },
   address:           { type: String, default: 'Kerala, India' },
   aboutUs:           { type: String, default: "Shazz Natural's is a Kerala-based brand crafting 100% natural, handmade beauty products." },
@@ -379,6 +380,16 @@ app.delete('/api/cart', (req, res) => { req.session.cart = []; res.json({ succes
 
 // ─────────────────── ORDERS ──────────────────────────────────────────────────
 
+async function notifyAdminWhatsApp(message) {
+  try {
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    if (!s || !s.callmebotApiKey || !s.whatsapp) return;
+    const phone = s.whatsapp.replace(/[^0-9]/g, '');
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(message)}&apikey=${s.callmebotApiKey}`;
+    await fetch(url);
+  } catch(e) { console.warn('WhatsApp notify failed:', e.message); }
+}
+
 app.post('/api/orders', async (req, res) => {
   try {
     const cart = req.session.cart || [];
@@ -398,6 +409,11 @@ app.post('/api/orders', async (req, res) => {
     });
     req.session.cart = [];
     res.json({ success: true, order: { ...order.toObject(), id: order.orderId } });
+
+    const itemsList = order.items.map(i => `- ${i.name} x${i.quantity}`).join('\n');
+    notifyAdminWhatsApp(
+      `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nTotal: ₹${order.total}\n${itemsList}`
+    );
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

@@ -360,6 +360,25 @@
         </div>
       </div>
 
+      <!-- Order WhatsApp Notifications -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fab fa-whatsapp" style="color:#25d366"></i> Order Notifications (WhatsApp)</h2></div>
+        <div class="adm-card-body">
+          <p style="font-size:0.85rem;color:#666;margin-bottom:16px">Get an automatic WhatsApp message on <strong>your own number</strong> (the "WhatsApp Number" above) every time a customer places an order — works for COD, UPI/Google Pay and Bank Transfer.</p>
+          <div style="background:#f5ead0;border-radius:10px;padding:14px;margin-bottom:16px;font-size:0.83rem;color:#555;line-height:1.8">
+            <strong style="color:#1b5e20">One-time setup (free, takes 1 minute):</strong><br/>
+            1. Save <strong>+34 644 59 71 65</strong> as a contact on your phone (e.g. name it "CallMeBot").<br/>
+            2. On WhatsApp, send this exact message to that contact: <code style="background:#fff;padding:2px 6px;border-radius:4px">I allow callmebot to send me messages</code><br/>
+            3. Wait for their reply — it will contain your personal <strong>API key</strong> (a number).<br/>
+            4. Paste that API key below and click Save.
+          </div>
+          <div class="adm-form-group">
+            <label>CallMeBot API Key</label>
+            <input type="text" id="s-callmebot-key" placeholder="e.g. 123456"/>
+          </div>
+        </div>
+      </div>
+
       <!-- Social Media -->
       <div class="adm-card">
         <div class="adm-card-header"><h2><i class="fa fa-share-alt"></i> Social Media Links</h2></div>
@@ -437,6 +456,7 @@
     document.getElementById('s-about').value = s.aboutUs || '';
     document.getElementById('s-phone').value = s.phone || '';
     document.getElementById('s-whatsapp').value = s.whatsapp || '';
+    document.getElementById('s-callmebot-key').value = s.callmebotApiKey || '';
     document.getElementById('s-email').value = s.email || '';
     document.getElementById('s-address').value = s.address || '';
     document.getElementById('s-instagram').value = s.instagram || '';
@@ -564,6 +584,7 @@
       aboutUs: document.getElementById('s-about').value,
       phone: document.getElementById('s-phone').value,
       whatsapp: document.getElementById('s-whatsapp').value,
+      callmebotApiKey: document.getElementById('s-callmebot-key').value,
       email: document.getElementById('s-email').value,
       address: document.getElementById('s-address').value,
       instagram: document.getElementById('s-instagram').value,
