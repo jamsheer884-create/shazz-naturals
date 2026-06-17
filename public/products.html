@@ -167,11 +167,21 @@
   let searchQuery = '';
   let minPrice = null, maxPrice = null;
 
-  const CATEGORIES = ['Face Care','Lip Care','Hair Care','Natural Oils','Soaps','Henna & Mehndi','Herbal Powders','Eye Care','Fragrances','Soap Making','Ornaments'];
+  let CATEGORIES = [];
 
   document.addEventListener('DOMContentLoaded', async () => {
     await loadSettings();
     updateCartBadge();
+
+    // Load categories from API
+    try {
+      const catRes = await fetch('/api/categories');
+      const catData = await catRes.json();
+      CATEGORIES = (catData.categories || []);
+      window._catEmojiMap = {};
+      CATEGORIES.forEach(c => { window._catEmojiMap[c.name] = c.emoji; });
+      CATEGORIES = CATEGORIES.map(c => c.name);
+    } catch(e) { CATEGORIES = []; }
 
     // Check URL params
     const params = new URLSearchParams(window.location.search);

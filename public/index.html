@@ -276,62 +276,8 @@
       <h2>Our Product Range</h2>
       <p>Explore our wide range of natural beauty products, each crafted with Kerala's finest botanicals.</p>
     </div>
-    <div class="categories-grid">
-      <a href="/products.html?category=Face Care" class="category-card">
-        <div class="category-icon" id="cat-icon-face-care">✨</div>
-        <div class="category-name">Face Care</div>
-        <div class="category-count">Face wash, packs & toners</div>
-      </a>
-      <a href="/products.html?category=Lip Care" class="category-card">
-        <div class="category-icon" id="cat-icon-lip-care">💋</div>
-        <div class="category-name">Lip Care</div>
-        <div class="category-count">Beetroot lip balm</div>
-      </a>
-      <a href="/products.html?category=Hair Care" class="category-card">
-        <div class="category-icon" id="cat-icon-hair-care">💆</div>
-        <div class="category-name">Hair Care</div>
-        <div class="category-count">Oils, shampoos & powders</div>
-      </a>
-      <a href="/products.html?category=Natural Oils" class="category-card">
-        <div class="category-icon" id="cat-icon-natural-oils">🫙</div>
-        <div class="category-name">Natural Oils</div>
-        <div class="category-count">Carrot, neem, aloe & more</div>
-      </a>
-      <a href="/products.html?category=Soaps" class="category-card">
-        <div class="category-icon" id="cat-icon-soaps">🧼</div>
-        <div class="category-name">Soaps</div>
-        <div class="category-count">Handcrafted luxury soaps</div>
-      </a>
-      <a href="/products.html?category=Henna & Mehndi" class="category-card">
-        <div class="category-icon" id="cat-icon-henna-mehndi">🌿</div>
-        <div class="category-name">Henna & Mehndi</div>
-        <div class="category-count">Henna, indigo & nail cones</div>
-      </a>
-      <a href="/products.html?category=Herbal Powders" class="category-card">
-        <div class="category-icon" id="cat-icon-herbal-powders">🪴</div>
-        <div class="category-name">Herbal Powders</div>
-        <div class="category-count">Multani mitti & more</div>
-      </a>
-      <a href="/products.html?category=Eye Care" class="category-card">
-        <div class="category-icon" id="cat-icon-eye-care">👁</div>
-        <div class="category-name">Eye Care</div>
-        <div class="category-count">Herbal kajal</div>
-      </a>
-      <a href="/products.html?category=Fragrances" class="category-card">
-        <div class="category-icon" id="cat-icon-fragrances">🌸</div>
-        <div class="category-name">Fragrances</div>
-        <div class="category-count">Rose, jasmine & more</div>
-      </a>
-      <a href="/products.html?category=Soap Making" class="category-card">
-        <div class="category-icon" id="cat-icon-soap-making">🎨</div>
-        <div class="category-name">Soap Making</div>
-        <div class="category-count">Molds & soap perfumes</div>
-      </a>
-      <a href="/products.html?category=Ornaments" class="category-card">
-        <div class="category-icon" id="cat-icon-ornaments">💎</div>
-        <div class="category-name">Ornaments</div>
-        <div class="category-count">Handcrafted jewelry & accessories</div>
-      </a>
+    <div class="categories-grid" id="categories-grid">
+      <div style="text-align:center;padding:40px;color:#888;grid-column:1/-1"><div class="spinner"></div></div>
     </div>
   </div>
 </section>
@@ -681,6 +627,31 @@
   document.addEventListener('DOMContentLoaded', async () => {
     await loadSettings();
     updateCartBadge();
+
+    // Load categories dynamically
+    try {
+      const catRes = await fetch('/api/categories');
+      const catData = await catRes.json();
+      const settings = window._siteSettings || {};
+      const catImgs = settings.categoryImages || {};
+      const grid = document.getElementById('categories-grid');
+      const cats = catData.categories || [];
+      if (cats.length) {
+        grid.innerHTML = cats.map(c => {
+          const key = c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          const img = catImgs[key];
+          const icon = img
+            ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>`
+            : c.emoji || '🌿';
+          return `<a href="/products.html?category=${encodeURIComponent(c.name)}" class="category-card">
+            <div class="category-icon">${icon}</div>
+            <div class="category-name">${c.name}</div>
+            <div class="category-count">${c.description || ''}</div>
+          </a>`;
+        }).join('');
+      }
+    } catch(e) {}
+
     const container = document.getElementById('featured-products');
     try {
       const res = await fetch('/api/products?featured=true');

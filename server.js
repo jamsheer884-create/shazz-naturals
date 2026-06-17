@@ -21,6 +21,21 @@ mongoose.connect(MONGO_URI)
     process.exit(1);
   });
 
+// ─── Default Categories ───────────────────────────────────────────────────────
+const DEFAULT_CATEGORIES = [
+  { name: 'Face Care',      emoji: '✨', description: 'Face wash, packs & toners' },
+  { name: 'Lip Care',       emoji: '💋', description: 'Beetroot lip balm' },
+  { name: 'Hair Care',      emoji: '💆', description: 'Oils, shampoos & powders' },
+  { name: 'Natural Oils',   emoji: '🫙', description: 'Carrot, neem, aloe & more' },
+  { name: 'Soaps',          emoji: '🧼', description: 'Handcrafted luxury soaps' },
+  { name: 'Henna & Mehndi', emoji: '🌿', description: 'Henna, indigo & nail cones' },
+  { name: 'Herbal Powders', emoji: '🪴', description: 'Multani mitti & more' },
+  { name: 'Eye Care',       emoji: '👁',  description: 'Herbal kajal' },
+  { name: 'Fragrances',     emoji: '🌸', description: 'Rose, jasmine & more' },
+  { name: 'Soap Making',    emoji: '🎨', description: 'Molds & soap perfumes' },
+  { name: 'Ornaments',      emoji: '💎', description: 'Handcrafted jewelry & accessories' },
+];
+
 // ─── Mongoose Schemas & Models ────────────────────────────────────────────────
 
 const ProductSchema = new mongoose.Schema({
@@ -85,6 +100,7 @@ const SettingsSchema = new mongoose.Schema({
   shippingCharge:    { type: Number, default: 60 },
   categoryImages:    { type: mongoose.Schema.Types.Mixed, default: {} },
   heroSlides:        { type: mongoose.Schema.Types.Mixed, default: [{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''}] },
+  categories:        { type: mongoose.Schema.Types.Mixed, default: DEFAULT_CATEGORIES },
 }, { timestamps: true });
 
 const Product  = mongoose.model('Product',  ProductSchema);
@@ -343,6 +359,42 @@ app.post('/api/settings/slide-text/:index', requireAdmin, async (req, res) => {
     raw[idx] = { ...raw[idx], title: title || '', subtitle: subtitle || '', label: label || '' };
     await Settings.findOneAndUpdate({ key: 'main' }, { $set: { heroSlides: raw } }, { new: true, upsert: true });
     res.json({ success: true, title, subtitle, label });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ─────────────────── CATEGORIES ──────────────────────────────────────────────
+
+app.get('/api/categories', async (req, res) => {
+  try {
+    let s = await Settings.findOne({ key: 'main' }).lean();
+    if (!s) s = await Settings.create({ key: 'main' });
+    const categories = (s.categories && s.categories.length) ? s.categories : DEFAULT_CATEGORIES;
+    res.json({ categories });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/categories', requireAdmin, async (req, res) => {
+  try {
+    const { name, emoji, description } = req.body;
+    if (!name) return res.status(400).json({ error: 'Category name is required' });
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    const categories = (s && s.categories && s.categories.length) ? [...s.categories] : [...DEFAULT_CATEGORIES];
+    if (categories.find(c => c.name.toLowerCase() === name.trim().toLowerCase()))
+      return res.status(400).json({ error: 'Category already exists' });
+    categories.push({ name: name.trim(), emoji: emoji || '🌿', description: description || '' });
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categories } }, { new: true, upsert: true });
+    res.json({ success: true, categories });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/categories/:name', requireAdmin, async (req, res) => {
+  try {
+    const name = decodeURIComponent(req.params.name);
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    let categories = (s && s.categories && s.categories.length) ? [...s.categories] : [...DEFAULT_CATEGORIES];
+    categories = categories.filter(c => c.name !== name);
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categories } }, { new: true, upsert: true });
+    res.json({ success: true, categories });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

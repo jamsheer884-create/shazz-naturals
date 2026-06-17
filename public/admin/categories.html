@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Categories – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <div class="adm-nav-section">Main</div>
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/categories.html" class="active"><span class="nav-icon"><i class="fa fa-th-large"></i></span> Categories</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <div class="adm-nav-section">Settings</div>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Site Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title"><h1>Categories</h1><p>Manage your product categories</p></div>
+    </div>
+
+    <div class="adm-content">
+      <div id="page-alert"></div>
+
+      <!-- Add Category Card -->
+      <div class="adm-card" style="margin-bottom:24px">
+        <div class="adm-card-header"><h2><i class="fa fa-plus-circle"></i> Add New Category</h2></div>
+        <div class="adm-card-body">
+          <div class="adm-form-row">
+            <div class="adm-form-group">
+              <label>Category Name *</label>
+              <input type="text" id="f-name" placeholder="e.g. Skin Care"/>
+            </div>
+            <div class="adm-form-group">
+              <label>Emoji Icon</label>
+              <input type="text" id="f-emoji" placeholder="e.g. 🌺" style="font-size:1.3rem" maxlength="4"/>
+            </div>
+            <div class="adm-form-group">
+              <label>Short Description</label>
+              <input type="text" id="f-desc" placeholder="e.g. Natural glow products"/>
+            </div>
+          </div>
+          <div id="add-alert"></div>
+          <button onclick="addCategory()" class="adm-btn adm-btn-primary"><i class="fa fa-plus"></i> Add Category</button>
+        </div>
+      </div>
+
+      <!-- Categories List -->
+      <div class="adm-card">
+        <div class="adm-card-header"><h2><i class="fa fa-th-large"></i> All Categories <span id="cat-count" style="font-size:0.8rem;font-weight:400;color:#888"></span></h2></div>
+        <div class="adm-card-body">
+          <div id="categories-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+            <div style="text-align:center;padding:40px;color:#888;grid-column:1/-1"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div id="delete-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:white;border-radius:14px;padding:32px;max-width:360px;width:100%;text-align:center">
+    <div style="font-size:3rem;margin-bottom:12px">🗑️</div>
+    <h3 style="margin-bottom:8px">Delete Category?</h3>
+    <p id="delete-name" style="color:#666;margin-bottom:24px;font-size:0.9rem"></p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button onclick="document.getElementById('delete-modal').classList.add('hidden')" class="adm-btn adm-btn-outline">Cancel</button>
+      <button onclick="confirmDelete()" class="adm-btn adm-btn-danger">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allCategories = [];
+  let deleteTarget = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    await loadCategories();
+  });
+
+  async function loadCategories() {
+    const res = await fetch('/api/categories');
+    const data = await res.json();
+    allCategories = data.categories || [];
+    renderCategories();
+  }
+
+  function renderCategories() {
+    const grid = document.getElementById('categories-grid');
+    document.getElementById('cat-count').textContent = '(' + allCategories.length + ')';
+    if (!allCategories.length) {
+      grid.innerHTML = '<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1">No categories yet. Add one above!</div>';
+      return;
+    }
+    grid.innerHTML = allCategories.map(c => `
+      <div style="border:1px solid #e0e0e0;border-radius:12px;padding:18px;display:flex;align-items:center;gap:14px;background:#fafafa">
+        <div style="font-size:2.2rem;width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:white;border-radius:10px;border:1px solid #eee;flex-shrink:0">${c.emoji || '🌿'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:0.95rem;color:#1b5e20;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+          <div style="font-size:0.78rem;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.description || ''}</div>
+        </div>
+        <button onclick="openDeleteModal('${c.name.replace(/'/g, "\\'")}')" class="adm-btn adm-btn-danger adm-btn-sm" title="Delete"><i class="fa fa-trash"></i></button>
+      </div>
+    `).join('');
+  }
+
+  async function addCategory() {
+    const name = document.getElementById('f-name').value.trim();
+    const emoji = document.getElementById('f-emoji').value.trim();
+    const description = document.getElementById('f-desc').value.trim();
+    const alertDiv = document.getElementById('add-alert');
+    if (!name) {
+      alertDiv.innerHTML = '<div class="adm-alert adm-alert-error" style="margin-top:10px">Category name is required.</div>';
+      return;
+    }
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, emoji, description })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-emoji').value = '';
+      document.getElementById('f-desc').value = '';
+      alertDiv.innerHTML = '';
+      showAlert('Category "' + name + '" added! ✅', 'success');
+      await loadCategories();
+    } else {
+      alertDiv.innerHTML = '<div class="adm-alert adm-alert-error" style="margin-top:10px">' + (data.error || 'Failed to add') + '</div>';
+    }
+  }
+
+  function openDeleteModal(name) {
+    deleteTarget = name;
+    document.getElementById('delete-name').textContent = 'Delete "' + name + '"? Products in this category will not be deleted, but they will no longer appear in the category filter.';
+    document.getElementById('delete-modal').classList.remove('hidden');
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    const res = await fetch('/api/categories/' + encodeURIComponent(deleteTarget), { method: 'DELETE' });
+    const data = await res.json();
+    document.getElementById('delete-modal').classList.add('hidden');
+    if (data.success) {
+      showAlert('"' + deleteTarget + '" deleted.', 'success');
+      await loadCategories();
+    } else {
+      showAlert('Delete failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+    deleteTarget = null;
+  }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('page-alert');
+    el.innerHTML = `<div class="adm-alert adm-alert-${type}">${msg}</div>`;
+    setTimeout(() => el.innerHTML = '', 4000);
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>

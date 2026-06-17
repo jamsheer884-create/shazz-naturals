@@ -150,6 +150,7 @@ function showToast(message, type = 'info') {
 
 // ─── Category Emoji ───
 function getCategoryEmoji(category) {
+  if (window._catEmojiMap && window._catEmojiMap[category]) return window._catEmojiMap[category];
   const map = {
     'Face Care': '✨', 'Lip Care': '💋', 'Hair Care': '💆',
     'Natural Oils': '🫙', 'Soaps': '🧼', 'Henna & Mehndi': '🌿',
