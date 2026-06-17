@@ -78,6 +78,13 @@
             <div class="adm-stat-label">Total Revenue</div>
           </div>
         </div>
+        <div class="adm-stat-card">
+          <div class="adm-stat-icon icon-gold"><i class="fa fa-clock" style="color:#e65100"></i></div>
+          <div>
+            <div class="adm-stat-num" id="stat-pending">—</div>
+            <div class="adm-stat-label">Pending Orders</div>
+          </div>
+        </div>
       </div>
 
       <!-- Quick Actions -->
@@ -145,6 +152,7 @@
     document.getElementById('stat-orders').textContent = stats.orders || 0;
     document.getElementById('stat-customers').textContent = stats.customers || 0;
     document.getElementById('stat-revenue').textContent = '₹' + (stats.revenue || 0);
+    document.getElementById('stat-pending').textContent = stats.pendingOrders || 0;
     // Recent orders
     const orders = stats.recentOrders || [];
     const tbody = document.getElementById('recent-orders');

@@ -521,7 +521,8 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       Order.find().lean()
     ]);
     const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
-    res.json({ products, customers, orders: orders.length, revenue, recentOrders: orders.slice(0, 5).map(o => ({ ...o, id: o.orderId })) });
+    const pendingOrders = orders.filter(o => o.status === 'Pending').length;
+    res.json({ products, customers, orders: orders.length, pendingOrders, revenue, recentOrders: orders.slice(0, 5).map(o => ({ ...o, id: o.orderId })) });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
