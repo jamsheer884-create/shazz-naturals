@@ -529,6 +529,24 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
 app.get('/api/admin/sales-report', requireAdmin, async (req, res) => {
   try {
     const orders = await Order.find().lean();
+    const by = req.query.by || 'product';
+
+    if (by === 'category') {
+      const products = await Product.find().lean();
+      const catMap = {};
+      products.forEach(p => { catMap[p._id.toString()] = p.category; });
+      const map = {};
+      orders.forEach(order => {
+        (order.items || []).forEach(item => {
+          const cat = catMap[item.productId] || 'Unknown';
+          if (!map[cat]) map[cat] = { category: cat, unitsSold: 0, revenue: 0 };
+          map[cat].unitsSold += item.quantity || 1;
+          map[cat].revenue  += (item.price || 0) * (item.quantity || 1);
+        });
+      });
+      return res.json({ report: Object.values(map).sort((a, b) => b.revenue - a.revenue) });
+    }
+
     const map = {};
     orders.forEach(order => {
       (order.items || []).forEach(item => {
@@ -538,8 +556,7 @@ app.get('/api/admin/sales-report', requireAdmin, async (req, res) => {
         map[key].revenue  += (item.price || 0) * (item.quantity || 1);
       });
     });
-    const report = Object.values(map).sort((a, b) => b.unitsSold - a.unitsSold);
-    res.json({ report });
+    res.json({ report: Object.values(map).sort((a, b) => b.unitsSold - a.unitsSold) });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

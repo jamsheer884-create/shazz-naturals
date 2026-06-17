@@ -127,12 +127,18 @@
       <!-- Product Wise Sale Report -->
       <div class="adm-card">
         <div class="adm-card-header">
-          <h2><i class="fa fa-chart-bar" style="color:#1b5e20;margin-right:8px"></i>Product Wise Sale Report</h2>
-          <button onclick="downloadCSV()" class="adm-btn adm-btn-outline adm-btn-sm"><i class="fa fa-download"></i> Download CSV</button>
+          <h2><i class="fa fa-chart-bar" style="color:#1b5e20;margin-right:8px"></i>Sale Report</h2>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;border:1px solid #ddd;border-radius:8px;overflow:hidden">
+              <button id="filter-product" onclick="loadSalesReport('product')" style="padding:6px 14px;font-size:0.82rem;font-weight:600;background:#1b5e20;color:white;border:none;cursor:pointer"><i class="fa fa-box"></i> Product Wise</button>
+              <button id="filter-category" onclick="loadSalesReport('category')" style="padding:6px 14px;font-size:0.82rem;font-weight:600;background:white;color:#555;border:none;cursor:pointer"><i class="fa fa-th-large"></i> Category Wise</button>
+            </div>
+            <button onclick="downloadCSV()" class="adm-btn adm-btn-outline adm-btn-sm"><i class="fa fa-download"></i> Download CSV</button>
+          </div>
         </div>
         <div class="adm-table-wrap">
           <table class="adm-table">
-            <thead>
+            <thead id="sales-report-head">
               <tr>
                 <th>#</th>
                 <th>Product</th>
@@ -177,27 +183,8 @@
     document.getElementById('stat-revenue').textContent = '₹' + (stats.revenue || 0);
     document.getElementById('stat-pending').textContent = stats.pendingOrders || 0;
 
-    // Product wise sale report
-    const reportRes = await fetch('/api/admin/sales-report');
-    const reportData = await reportRes.json();
-    const reportTbody = document.getElementById('sales-report-tbody');
-    if (!reportData.report || !reportData.report.length) {
-      reportTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#888">No sales data yet.</td></tr>';
-    } else {
-      window._salesReport = reportData.report;
-      reportTbody.innerHTML = reportData.report.map((p, i) => `
-        <tr>
-          <td style="color:#888;font-size:0.85rem">${i + 1}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:10px">
-              ${p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid #eee" onerror="this.style.display='none'"/>` : ''}
-              <strong style="font-size:0.9rem">${p.name}</strong>
-            </div>
-          </td>
-          <td><span class="adm-badge badge-green">${p.unitsSold} units</span></td>
-          <td><strong style="color:#1b5e20">₹${p.revenue.toLocaleString('en-IN')}</strong></td>
-        </tr>`).join('');
-    }
+    // Product wise sale report (default)
+    await loadSalesReport('product');
 
     // Recent orders
     const orders = stats.recentOrders || [];
@@ -217,11 +204,63 @@
     }
   });
 
+  let _currentReportMode = 'product';
+
+  async function loadSalesReport(mode) {
+    _currentReportMode = mode;
+    const btnProduct  = document.getElementById('filter-product');
+    const btnCategory = document.getElementById('filter-category');
+    btnProduct.style.background  = mode === 'product'  ? '#1b5e20' : 'white';
+    btnProduct.style.color       = mode === 'product'  ? 'white'   : '#555';
+    btnCategory.style.background = mode === 'category' ? '#1b5e20' : 'white';
+    btnCategory.style.color      = mode === 'category' ? 'white'   : '#555';
+
+    const thead  = document.getElementById('sales-report-head');
+    const tbody  = document.getElementById('sales-report-tbody');
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    const res  = await fetch('/api/admin/sales-report?by=' + mode);
+    const data = await res.json();
+    window._salesReport = data.report || [];
+
+    if (!window._salesReport.length) {
+      thead.innerHTML = '<tr><th>#</th><th>' + (mode === 'category' ? 'Category' : 'Product') + '</th><th>Units Sold</th><th>Revenue</th></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#888">No sales data yet.</td></tr>';
+      return;
+    }
+
+    if (mode === 'category') {
+      thead.innerHTML = '<tr><th>#</th><th>Category</th><th>Units Sold</th><th>Revenue</th></tr>';
+      tbody.innerHTML = window._salesReport.map((c, i) => `
+        <tr>
+          <td style="color:#888;font-size:0.85rem">${i + 1}</td>
+          <td><strong style="font-size:0.9rem">${c.category}</strong></td>
+          <td><span class="adm-badge badge-green">${c.unitsSold} units</span></td>
+          <td><strong style="color:#1b5e20">₹${c.revenue.toLocaleString('en-IN')}</strong></td>
+        </tr>`).join('');
+    } else {
+      thead.innerHTML = '<tr><th>#</th><th>Product</th><th>Units Sold</th><th>Revenue</th></tr>';
+      tbody.innerHTML = window._salesReport.map((p, i) => `
+        <tr>
+          <td style="color:#888;font-size:0.85rem">${i + 1}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              ${p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid #eee" onerror="this.style.display='none'"/>` : ''}
+              <strong style="font-size:0.9rem">${p.name}</strong>
+            </div>
+          </td>
+          <td><span class="adm-badge badge-green">${p.unitsSold} units</span></td>
+          <td><strong style="color:#1b5e20">₹${p.revenue.toLocaleString('en-IN')}</strong></td>
+        </tr>`).join('');
+    }
+  }
+
   function downloadCSV() {
     const report = window._salesReport || [];
     if (!report.length) return alert('No sales data to download.');
-    const rows = [['#', 'Product Name', 'Units Sold', 'Revenue (INR)']];
-    report.forEach((p, i) => rows.push([i + 1, p.name, p.unitsSold, p.revenue]));
+    const isCat = _currentReportMode === 'category';
+    const rows = [['#', isCat ? 'Category' : 'Product Name', 'Units Sold', 'Revenue (INR)']];
+    report.forEach((p, i) => rows.push([i + 1, isCat ? p.category : p.name, p.unitsSold, p.revenue]));
     const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
     const a = document.createElement('a');
     a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
