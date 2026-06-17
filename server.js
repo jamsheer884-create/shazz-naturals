@@ -387,6 +387,21 @@ app.post('/api/categories', requireAdmin, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.put('/api/categories/:name', requireAdmin, async (req, res) => {
+  try {
+    const oldName = decodeURIComponent(req.params.name);
+    const { name, emoji, description } = req.body;
+    if (!name) return res.status(400).json({ error: 'Category name is required' });
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    let categories = (s && s.categories && s.categories.length) ? [...s.categories] : [...DEFAULT_CATEGORIES];
+    const idx = categories.findIndex(c => c.name === oldName);
+    if (idx === -1) return res.status(404).json({ error: 'Category not found' });
+    categories[idx] = { ...categories[idx], name: name.trim(), emoji: emoji || categories[idx].emoji, description: description ?? categories[idx].description };
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categories } }, { new: true, upsert: true });
+    res.json({ success: true, categories });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.delete('/api/categories/:name', requireAdmin, async (req, res) => {
   try {
     const name = decodeURIComponent(req.params.name);

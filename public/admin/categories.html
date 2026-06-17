@@ -34,7 +34,7 @@
     <div class="adm-content">
       <div id="page-alert"></div>
 
-      <!-- Add Category Card -->
+      <!-- Add Category -->
       <div class="adm-card" style="margin-bottom:24px">
         <div class="adm-card-header"><h2><i class="fa fa-plus-circle"></i> Add New Category</h2></div>
         <div class="adm-card-body">
@@ -45,7 +45,7 @@
             </div>
             <div class="adm-form-group">
               <label>Emoji Icon</label>
-              <input type="text" id="f-emoji" placeholder="e.g. 🌺" style="font-size:1.3rem" maxlength="4"/>
+              <input type="text" id="f-emoji" placeholder="e.g. 🌺" style="font-size:1.4rem" maxlength="4"/>
             </div>
             <div class="adm-form-group">
               <label>Short Description</label>
@@ -61,13 +61,59 @@
       <div class="adm-card">
         <div class="adm-card-header"><h2><i class="fa fa-th-large"></i> All Categories <span id="cat-count" style="font-size:0.8rem;font-weight:400;color:#888"></span></h2></div>
         <div class="adm-card-body">
-          <div id="categories-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+          <div id="categories-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
             <div style="text-align:center;padding:40px;color:#888;grid-column:1/-1"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
           </div>
         </div>
       </div>
     </div>
   </main>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:white;border-radius:14px;width:100%;max-width:480px;overflow:hidden">
+    <div style="padding:18px 24px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between">
+      <h3 style="font-size:1rem;font-weight:600">Edit Category</h3>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888">✕</button>
+    </div>
+    <div style="padding:24px">
+      <div id="edit-alert"></div>
+
+      <!-- Image / Emoji preview -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div id="edit-icon-preview" style="width:72px;height:72px;border-radius:12px;border:2px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:2.4rem;overflow:hidden;background:#f9f9f9;flex-shrink:0">🌿</div>
+        <div style="flex:1">
+          <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Category Image</label>
+          <label class="adm-btn adm-btn-secondary adm-btn-sm" style="cursor:pointer">
+            <i class="fa fa-upload"></i> Upload Image
+            <input type="file" id="edit-img-input" accept="image/*" style="display:none" onchange="previewEditImage(event)"/>
+          </label>
+          <button onclick="clearEditImage()" id="clear-img-btn" class="adm-btn adm-btn-outline adm-btn-sm" style="margin-left:6px;display:none"><i class="fa fa-times"></i> Remove</button>
+          <div style="font-size:0.75rem;color:#999;margin-top:4px">Or use an emoji below</div>
+        </div>
+      </div>
+
+      <div class="adm-form-row">
+        <div class="adm-form-group">
+          <label>Category Name *</label>
+          <input type="text" id="edit-name" placeholder="Category name"/>
+        </div>
+        <div class="adm-form-group">
+          <label>Emoji Icon</label>
+          <input type="text" id="edit-emoji" placeholder="e.g. 🌺" style="font-size:1.4rem" maxlength="4" oninput="updateEmojiPreview()"/>
+        </div>
+      </div>
+      <div class="adm-form-group">
+        <label>Short Description</label>
+        <input type="text" id="edit-desc" placeholder="e.g. Natural glow products"/>
+      </div>
+    </div>
+    <div style="padding:14px 24px;border-top:1px solid #e0e0e0;display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeEditModal()" class="adm-btn adm-btn-outline">Cancel</button>
+      <button onclick="saveEdit()" class="adm-btn adm-btn-primary" id="save-edit-btn"><i class="fa fa-save"></i> Save Changes</button>
+    </div>
+  </div>
 </div>
 
 <!-- Delete Confirm Modal -->
@@ -86,10 +132,15 @@
 <script>
   let allCategories = [];
   let deleteTarget = null;
+  let editTarget = null;
+  let editImageFile = null;
+  let siteSettings = {};
 
   document.addEventListener('DOMContentLoaded', async () => {
     const me = await fetch('/api/auth/me').then(r => r.json());
     if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    const s = await fetch('/api/settings').then(r => r.json());
+    siteSettings = s || {};
     await loadCategories();
   });
 
@@ -100,25 +151,42 @@
     renderCategories();
   }
 
+  function getCatKey(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
   function renderCategories() {
     const grid = document.getElementById('categories-grid');
     document.getElementById('cat-count').textContent = '(' + allCategories.length + ')';
+    const catImgs = siteSettings.categoryImages || {};
     if (!allCategories.length) {
       grid.innerHTML = '<div style="text-align:center;padding:40px;color:#888;grid-column:1/-1">No categories yet. Add one above!</div>';
       return;
     }
-    grid.innerHTML = allCategories.map(c => `
-      <div style="border:1px solid #e0e0e0;border-radius:12px;padding:18px;display:flex;align-items:center;gap:14px;background:#fafafa">
-        <div style="font-size:2.2rem;width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:white;border-radius:10px;border:1px solid #eee;flex-shrink:0">${c.emoji || '🌿'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:0.95rem;color:#1b5e20;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
-          <div style="font-size:0.78rem;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.description || ''}</div>
-        </div>
-        <button onclick="openDeleteModal('${c.name.replace(/'/g, "\\'")}')" class="adm-btn adm-btn-danger adm-btn-sm" title="Delete"><i class="fa fa-trash"></i></button>
-      </div>
-    `).join('');
+    grid.innerHTML = allCategories.map(c => {
+      const key = getCatKey(c.name);
+      const img = catImgs[key];
+      const iconHtml = img
+        ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>`
+        : `<span style="font-size:2rem">${c.emoji || '🌿'}</span>`;
+      return `
+        <div style="border:1px solid #e0e0e0;border-radius:12px;padding:16px;background:#fafafa">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:52px;height:52px;border-radius:10px;background:white;border:1px solid #eee;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">${iconHtml}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:0.95rem;color:#1b5e20;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
+              <div style="font-size:0.78rem;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.description || ''}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="openEditModal('${c.name.replace(/'/g, "\\'")}')" class="adm-btn adm-btn-outline adm-btn-sm" style="flex:1"><i class="fa fa-edit"></i> Edit</button>
+            <button onclick="openDeleteModal('${c.name.replace(/'/g, "\\'")}')" class="adm-btn adm-btn-danger adm-btn-sm"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>`;
+    }).join('');
   }
 
+  /* ─── Add ─── */
   async function addCategory() {
     const name = document.getElementById('f-name').value.trim();
     const emoji = document.getElementById('f-emoji').value.trim();
@@ -146,9 +214,110 @@
     }
   }
 
+  /* ─── Edit ─── */
+  function openEditModal(name) {
+    const cat = allCategories.find(c => c.name === name);
+    if (!cat) return;
+    editTarget = name;
+    editImageFile = null;
+    document.getElementById('edit-name').value = cat.name;
+    document.getElementById('edit-emoji').value = cat.emoji || '';
+    document.getElementById('edit-desc').value = cat.description || '';
+    document.getElementById('edit-alert').innerHTML = '';
+    document.getElementById('edit-img-input').value = '';
+    document.getElementById('clear-img-btn').style.display = 'none';
+
+    const key = getCatKey(cat.name);
+    const img = (siteSettings.categoryImages || {})[key];
+    const preview = document.getElementById('edit-icon-preview');
+    if (img) {
+      preview.innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:cover"/>`;
+      document.getElementById('clear-img-btn').style.display = 'inline-flex';
+    } else {
+      preview.textContent = cat.emoji || '🌿';
+    }
+    document.getElementById('edit-modal').classList.remove('hidden');
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-modal').classList.add('hidden');
+    editTarget = null;
+    editImageFile = null;
+  }
+
+  function updateEmojiPreview() {
+    if (editImageFile) return;
+    const val = document.getElementById('edit-emoji').value;
+    document.getElementById('edit-icon-preview').textContent = val || '🌿';
+  }
+
+  function previewEditImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    editImageFile = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('edit-icon-preview').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;
+      document.getElementById('clear-img-btn').style.display = 'inline-flex';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearEditImage() {
+    editImageFile = null;
+    document.getElementById('edit-img-input').value = '';
+    document.getElementById('clear-img-btn').style.display = 'none';
+    document.getElementById('edit-icon-preview').textContent = document.getElementById('edit-emoji').value || '🌿';
+  }
+
+  async function saveEdit() {
+    const btn = document.getElementById('save-edit-btn');
+    const alertDiv = document.getElementById('edit-alert');
+    const name = document.getElementById('edit-name').value.trim();
+    const emoji = document.getElementById('edit-emoji').value.trim();
+    const description = document.getElementById('edit-desc').value.trim();
+    if (!name) {
+      alertDiv.innerHTML = '<div class="adm-alert adm-alert-error">Category name is required.</div>';
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="adm-spinner"></span> Saving...';
+
+    // Upload image if selected
+    if (editImageFile) {
+      const newKey = getCatKey(name);
+      const fd = new FormData();
+      fd.append('categoryImage', editImageFile);
+      const imgRes = await fetch('/api/settings/category-image/' + newKey, { method: 'POST', body: fd });
+      const imgData = await imgRes.json();
+      if (imgData.success) {
+        if (!siteSettings.categoryImages) siteSettings.categoryImages = {};
+        siteSettings.categoryImages[newKey] = imgData.url;
+      }
+    }
+
+    // Save category data
+    const res = await fetch('/api/categories/' + encodeURIComponent(editTarget), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, emoji, description })
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-save"></i> Save Changes';
+    if (data.success) {
+      closeEditModal();
+      showAlert('Category updated! ✅', 'success');
+      await loadCategories();
+    } else {
+      alertDiv.innerHTML = '<div class="adm-alert adm-alert-error">' + (data.error || 'Save failed') + '</div>';
+    }
+  }
+
+  /* ─── Delete ─── */
   function openDeleteModal(name) {
     deleteTarget = name;
-    document.getElementById('delete-name').textContent = 'Delete "' + name + '"? Products in this category will not be deleted, but they will no longer appear in the category filter.';
+    document.getElementById('delete-name').textContent = 'Delete "' + name + '"? Products in this category will not be deleted.';
     document.getElementById('delete-modal').classList.remove('hidden');
   }
 
