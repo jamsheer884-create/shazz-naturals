@@ -449,6 +449,24 @@
       "badge": "DIY",
       "rating": 4.5,
       "reviewCount": 67
+    },
+    {
+      "id": "PRD-026",
+      "name": "Handcrafted Wooden Bangle",
+      "category": "Ornaments",
+      "price": 249,
+      "originalPrice": 299,
+      "description": "Beautiful handcrafted wooden bangle made from sustainable Kerala wood with intricate traditional Kerala carving designs. Perfect for daily wear or special occasions. Each piece is unique and carefully handcrafted by artisans.",
+      "ingredients": "Sustainable Kerala Wood, Natural Wood Polish",
+      "howToUse": "Wear as a traditional bangle or ornament. Hand wash gently. Store in a dry place.",
+      "benefits": ["Handcrafted by artisans", "Sustainable materials", "Unique traditional designs", "Lightweight & comfortable", "Supports local craftsmen"],
+      "weight": "20g",
+      "image": "/images/products/wooden-bangle.jpg",
+      "inStock": true,
+      "featured": true,
+      "badge": "Handcrafted",
+      "rating": 4.7,
+      "reviewCount": 34
     }
   ]
 }

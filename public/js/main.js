@@ -154,7 +154,7 @@ function getCategoryEmoji(category) {
     'Face Care': '✨', 'Lip Care': '💋', 'Hair Care': '💆',
     'Natural Oils': '🫙', 'Soaps': '🧼', 'Henna & Mehndi': '🌿',
     'Herbal Powders': '🪴', 'Eye Care': '👁', 'Fragrances': '🌸',
-    'Soap Making': '🎨'
+    'Soap Making': '🎨', 'Ornaments': '💎'
   };
   return map[category] || '🌿';
 }
