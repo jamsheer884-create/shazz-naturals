@@ -526,6 +526,23 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get('/api/admin/sales-report', requireAdmin, async (req, res) => {
+  try {
+    const orders = await Order.find().lean();
+    const map = {};
+    orders.forEach(order => {
+      (order.items || []).forEach(item => {
+        const key = item.productId || item.name;
+        if (!map[key]) map[key] = { name: item.name, image: item.image || '', unitsSold: 0, revenue: 0 };
+        map[key].unitsSold += item.quantity || 1;
+        map[key].revenue  += (item.price || 0) * (item.quantity || 1);
+      });
+    });
+    const report = Object.values(map).sort((a, b) => b.unitsSold - a.unitsSold);
+    res.json({ report });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Catch-all
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, 'public', 'index.html'));

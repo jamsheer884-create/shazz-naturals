@@ -124,6 +124,29 @@
         </div>
       </div>
 
+      <!-- Product Wise Sale Report -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <h2><i class="fa fa-chart-bar" style="color:#1b5e20;margin-right:8px"></i>Product Wise Sale Report</h2>
+          <button onclick="downloadCSV()" class="adm-btn adm-btn-outline adm-btn-sm"><i class="fa fa-download"></i> Download CSV</button>
+        </div>
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Units Sold</th>
+                <th>Revenue</th>
+              </tr>
+            </thead>
+            <tbody id="sales-report-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:30px;color:#888">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- WhatsApp Direct Link -->
       <div class="adm-card" style="background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border-color:#a5d6a7">
         <div class="adm-card-body" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
@@ -153,6 +176,29 @@
     document.getElementById('stat-customers').textContent = stats.customers || 0;
     document.getElementById('stat-revenue').textContent = '₹' + (stats.revenue || 0);
     document.getElementById('stat-pending').textContent = stats.pendingOrders || 0;
+
+    // Product wise sale report
+    const reportRes = await fetch('/api/admin/sales-report');
+    const reportData = await reportRes.json();
+    const reportTbody = document.getElementById('sales-report-tbody');
+    if (!reportData.report || !reportData.report.length) {
+      reportTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#888">No sales data yet.</td></tr>';
+    } else {
+      window._salesReport = reportData.report;
+      reportTbody.innerHTML = reportData.report.map((p, i) => `
+        <tr>
+          <td style="color:#888;font-size:0.85rem">${i + 1}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              ${p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid #eee" onerror="this.style.display='none'"/>` : ''}
+              <strong style="font-size:0.9rem">${p.name}</strong>
+            </div>
+          </td>
+          <td><span class="adm-badge badge-green">${p.unitsSold} units</span></td>
+          <td><strong style="color:#1b5e20">₹${p.revenue.toLocaleString('en-IN')}</strong></td>
+        </tr>`).join('');
+    }
+
     // Recent orders
     const orders = stats.recentOrders || [];
     const tbody = document.getElementById('recent-orders');
@@ -170,6 +216,18 @@
         </tr>`).join('');
     }
   });
+
+  function downloadCSV() {
+    const report = window._salesReport || [];
+    if (!report.length) return alert('No sales data to download.');
+    const rows = [['#', 'Product Name', 'Units Sold', 'Revenue (INR)']];
+    report.forEach((p, i) => rows.push([i + 1, p.name, p.unitsSold, p.revenue]));
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'product-sale-report.csv';
+    a.click();
+  }
 
   function statusClass(s) {
     const map = {'Pending':'yellow','Confirmed':'green','Shipped':'blue','Delivered':'green','Cancelled':'red'};
