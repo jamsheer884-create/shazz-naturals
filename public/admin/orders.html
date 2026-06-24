@@ -86,6 +86,9 @@
   </main>
 </div>
 
+<!-- WhatsApp Send Reminder (bottom-right) -->
+<div id="wa-reminder" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:none"></div>
+
 <!-- Add WhatsApp Order Modal -->
 <div class="modal-overlay" id="wa-modal">
   <div class="modal-box">
@@ -182,9 +185,13 @@
         </td>
         <td style="font-size:0.78rem;color:#888">${new Date(o.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</td>
         <td>
-          <a href="https://wa.me/${(o.customerPhone || '').replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMessage(o.id, o.status, o.customerName))}"
-             target="_blank" class="adm-btn adm-btn-outline adm-btn-sm" title="Send WhatsApp message" style="background:#e7fdf0;border-color:#86efac;color:#15803d">
-            <i class="fab fa-whatsapp"></i> ${o.status}
+          <a id="wa-btn-${o.id}"
+             href="https://wa.me/${(o.customerPhone || '').replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMessage(o.id, o.status, o.customerName))}"
+             target="_blank" class="adm-btn adm-btn-sm"
+             onclick="markWASent('${o.id}','${o.status}')"
+             title="${isSent(o.id,o.status) ? 'Message sent ✓' : 'Click to send WhatsApp'}"
+             style="background:${isSent(o.id,o.status)?'#1565c0':'#25d366'};color:#fff;border:none;font-weight:600">
+            <i class="fab fa-whatsapp"></i> ${isSent(o.id,o.status)?'Sent ✓':o.status}
           </a>
         </td>
       </tr>`;
@@ -229,18 +236,44 @@
     }
   }
 
+  function isSent(orderId, status) {
+    return localStorage.getItem('wa_sent_' + orderId + '_' + status) === '1';
+  }
+
+  function markWASent(orderId, status) {
+    localStorage.setItem('wa_sent_' + orderId + '_' + status, '1');
+    const btn = document.getElementById('wa-btn-' + orderId);
+    if (btn) {
+      btn.style.background = '#1565c0';
+      btn.innerHTML = '<i class="fab fa-whatsapp"></i> Sent ✓';
+      btn.title = 'Message sent ✓';
+    }
+    hideReminder();
+  }
+
   function showWAReminder(orderId, status, name, phone) {
-    const el = document.getElementById('page-alert');
     const msg = waMessage(orderId, status, name);
     const waLink = 'https://wa.me/' + (phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent(msg);
+    const el = document.getElementById('wa-reminder');
     el.innerHTML = `
-      <div class="adm-alert adm-alert-success" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <span>✅ Status updated to <strong>${status}</strong>. Don't forget to notify the customer!</span>
-        <a href="${waLink}" target="_blank" class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none;white-space:nowrap">
-          <i class="fab fa-whatsapp"></i> Send WhatsApp Now
-        </a>
+      <div style="background:#fff;border:1px solid #86efac;border-radius:12px;padding:14px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.15);min-width:280px">
+        <div style="font-size:0.85rem;color:#333;margin-bottom:10px">✅ Status → <strong>${status}</strong><br><span style="color:#888;font-size:0.78rem">Send WhatsApp to notify customer</span></div>
+        <div style="display:flex;gap:8px">
+          <a href="${waLink}" target="_blank" onclick="markWASent('${orderId}','${status}')"
+             style="flex:1;background:#25d366;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:0.83rem;font-weight:600;text-align:center;text-decoration:none">
+            <i class="fab fa-whatsapp"></i> Send Now
+          </a>
+          <button onclick="hideReminder()" style="background:#f3f4f6;border:none;border-radius:8px;padding:8px 12px;font-size:0.83rem;cursor:pointer;color:#555">Skip</button>
+        </div>
       </div>`;
-    setTimeout(() => el.innerHTML = '', 15000);
+    el.style.display = 'block';
+    if (window._reminderTimer) clearTimeout(window._reminderTimer);
+    window._reminderTimer = setTimeout(hideReminder, 20000);
+  }
+
+  function hideReminder() {
+    const el = document.getElementById('wa-reminder');
+    if (el) el.style.display = 'none';
   }
 
   // ── WhatsApp Order Modal ──────────────────────────────────────────────────
