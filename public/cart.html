@@ -151,6 +151,14 @@
         <input type="tel" id="wa-quick-phone" placeholder="98765 43210" style="flex:1"/>
       </div>
     </div>
+    <div class="form-group">
+      <label>Delivery Address *</label>
+      <textarea id="wa-quick-address" placeholder="House No., Street, City, District" rows="2" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;resize:none"></textarea>
+    </div>
+    <div class="form-group">
+      <label>PIN Code *</label>
+      <input type="text" id="wa-quick-pincode" placeholder="e.g. 670001" maxlength="6" style="width:100%;box-sizing:border-box"/>
+    </div>
     <button onclick="confirmWhatsAppOrder()" class="btn btn-whatsapp" style="width:100%;justify-content:center;padding:13px;font-size:1rem;margin-top:8px">
       <i class="fab fa-whatsapp"></i> Continue to WhatsApp
     </button>
@@ -353,9 +361,11 @@
   async function confirmWhatsAppOrder() {
     const name = document.getElementById('wa-quick-name').value.trim();
     const phoneNum = document.getElementById('wa-quick-phone').value.trim();
+    const address = document.getElementById('wa-quick-address').value.trim();
+    const pincode = document.getElementById('wa-quick-pincode').value.trim();
     const alertDiv = document.getElementById('wa-quick-alert');
-    if (!name || !phoneNum) {
-      alertDiv.innerHTML = '<div class="alert alert-error" style="margin-bottom:10px">Please enter your name and phone number.</div>';
+    if (!name || !phoneNum || !address || !pincode) {
+      alertDiv.innerHTML = '<div class="alert alert-error" style="margin-bottom:10px">Please fill in all fields.</div>';
       return;
     }
     const phone = '+' + document.getElementById('wa-quick-country').value + ' ' + phoneNum;
@@ -365,18 +375,18 @@
       await fetch('/api/orders/whatsapp', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ customerName: name, customerPhone: phone, items: cartData })
+        body: JSON.stringify({ customerName: name, customerPhone: phone, address, pincode, items: cartData })
       });
     } catch(e) { /* non-blocking — still open WhatsApp */ }
 
     document.getElementById('wa-quick-modal').classList.add('hidden');
-    _openWhatsAppWithDetails(name, phone, '');
+    _openWhatsAppWithDetails(name, phone, address, pincode);
     cartData = [];
     renderCart();
     updateCartBadge();
   }
 
-  function _openWhatsAppWithDetails(name, phone, address) {
+  function _openWhatsAppWithDetails(name, phone, address, pincode) {
     const settings = window._settings || {};
     const freeShipping = settings.freeShippingAbove || 500;
     const shippingCharge = settings.shippingCharge || 60;
@@ -385,7 +395,7 @@
     const total = subtotal + shipping;
     const waNumber = (settings.whatsapp || '917902302884').replace(/[^0-9]/g, '');
     const itemsList = cartData.map(i => `• *${i.name}* x${i.quantity} = ₹${i.price * i.quantity}`).join('\n');
-    const customerInfo = name ? `\n\n*Customer Details:*\nName: ${name}\nPhone: ${phone}${address ? '\nAddress: ' + address : ''}` : '';
+    const customerInfo = name ? `\n\n*Customer Details:*\n👤 Name: ${name}\n📱 Phone: ${phone}${address ? '\n🏠 Address: ' + address : ''}${pincode ? '\n📍 PIN: ' + pincode : ''}` : '';
     const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ${shipping === 0 ? 'FREE' : '₹' + shipping}\n*Total: ₹${total}*\n\nPlease confirm my order. Thank you! 🙏`;
     window.open('https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg), '_blank');
   }

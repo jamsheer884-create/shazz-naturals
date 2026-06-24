@@ -461,7 +461,7 @@ async function notifyAdminWhatsApp(message) {
 
 app.post('/api/orders/whatsapp', async (req, res) => {
   try {
-    const { customerName, customerPhone, items } = req.body;
+    const { customerName, customerPhone, address, pincode, items } = req.body;
     if (!customerName || !customerPhone) return res.status(400).json({ error: 'Name and phone required' });
     if (!items || !items.length) return res.status(400).json({ error: 'No items in order' });
     const total = items.reduce((s, i) => s + (Number(i.price) * Number(i.quantity)), 0);
@@ -470,6 +470,8 @@ app.post('/api/orders/whatsapp', async (req, res) => {
       customerId:    req.session.user?.id || 'guest',
       customerName,
       customerPhone,
+      address:       address || '',
+      pincode:       pincode || '',
       items:         items.map(i => ({ name: i.name, price: Number(i.price), quantity: Number(i.quantity), weight: i.weight || '', productId: i.productId || '', image: i.image || '' })),
       total,
       orderSource:   'whatsapp',
