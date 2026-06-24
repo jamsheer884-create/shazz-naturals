@@ -220,6 +220,12 @@ h1, h2, h3, h4, h5 { font-family: var(--font-head); line-height: 1.3; }
   font-size: 0.78rem;
   color: var(--secondary);
 }
+@media (max-width: 768px) {
+  .nav-logo-text .brand-name { font-size: 1.05rem; white-space: nowrap; }
+  .nav-logo-text .brand-sub { font-size: 0.68rem; white-space: nowrap; }
+  .nav-logo img, .nav-logo-svg { width: 36px; height: 36px; }
+  .nav-logo { gap: 7px; }
+}
 .nav-links { display: flex; gap: 28px; }
 .nav-links a {
   color: var(--text-dark);
