@@ -3,54 +3,324 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login – Shazz Natural's</title>
-  <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Keyframes ── */
+    @keyframes bgShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes orbDrift1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(50px,-40px) scale(1.1); }
+      66%      { transform: translate(-30px,60px) scale(0.92); }
+    }
+    @keyframes orbDrift2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      40%      { transform: translate(-60px,30px) scale(1.15); }
+      80%      { transform: translate(40px,-50px) scale(0.88); }
+    }
+    @keyframes orbDrift3 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      50%      { transform: translate(30px,50px) scale(1.08); }
+    }
+    @keyframes orbDrift4 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      30%      { transform: translate(-40px,-30px) scale(1.12); }
+      70%      { transform: translate(60px,40px) scale(0.9); }
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(50px) scale(0.96); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
     @keyframes logoFloat {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(-8px) scale(1.03); }
+      0%,100% { transform:translateY(0px); filter:drop-shadow(0 8px 24px rgba(27,94,32,0.35)); }
+      50%      { transform:translateY(-14px); filter:drop-shadow(0 20px 40px rgba(27,94,32,0.55)); }
     }
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes taglineIn {
+      from { opacity:0; letter-spacing:0.3em; }
+      to   { opacity:1; letter-spacing:0.12em; }
     }
-    .auth-card { animation: fadeSlideIn 0.6s ease; }
-    .login-logo-img {
-      height: 260px;
+    @keyframes shimmer {
+      0%   { background-position:-200% center; }
+      100% { background-position:200% center; }
+    }
+    @keyframes inputFocus {
+      from { box-shadow:0 0 0 0 rgba(46,125,50,0.4); }
+      to   { box-shadow:0 0 0 4px rgba(46,125,50,0.15); }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    body { min-height:100vh; font-family:'Segoe UI',system-ui,sans-serif; }
+
+    /* ── Full page background ── */
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #071a07 0%, #0d3319 30%, #1b5e20 55%, #2e7d32 75%, #0d3319 90%, #071a07 100%);
+      background-size: 400% 400%;
+      animation: bgShift 12s ease infinite;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Glowing orbs ── */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+    }
+    .orb-1 {
+      width:480px; height:480px;
+      background: radial-gradient(circle, rgba(76,175,80,0.30) 0%, rgba(27,94,32,0.08) 70%, transparent 100%);
+      top:-100px; left:-100px;
+      animation: orbDrift1 16s ease-in-out infinite;
+    }
+    .orb-2 {
+      width:560px; height:560px;
+      background: radial-gradient(circle, rgba(56,142,60,0.22) 0%, rgba(27,94,32,0.06) 70%, transparent 100%);
+      bottom:-140px; right:-120px;
+      animation: orbDrift2 20s ease-in-out infinite;
+    }
+    .orb-3 {
+      width:340px; height:340px;
+      background: radial-gradient(circle, rgba(139,195,74,0.18) 0%, transparent 70%);
+      top:50%; left:-60px; transform:translateY(-50%);
+      animation: orbDrift3 24s ease-in-out infinite;
+    }
+    .orb-4 {
+      width:400px; height:400px;
+      background: radial-gradient(circle, rgba(46,125,50,0.20) 0%, transparent 70%);
+      top:10%; right:-80px;
+      animation: orbDrift4 18s ease-in-out infinite;
+    }
+    .orb-5 {
+      width:280px; height:280px;
+      background: radial-gradient(circle, rgba(174,213,129,0.14) 0%, transparent 70%);
+      bottom:10%; left:25%;
+      animation: orbDrift1 22s ease-in-out infinite reverse;
+    }
+
+    /* ── Card ── */
+    .auth-card {
+      position: relative;
+      z-index: 10;
+      background: rgba(255,255,255,0.97);
+      border-radius: 28px;
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.45),
+        0 0 0 1px rgba(255,255,255,0.1),
+        inset 0 1px 0 rgba(255,255,255,1);
+      padding: 40px 40px 36px;
       width: 100%;
-      max-width: 400px;
+      max-width: 460px;
+      animation: cardIn 0.8s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    /* ── Logo ── */
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .login-logo-img {
+      height: 220px;
+      width: 100%;
+      max-width: 360px;
       object-fit: contain;
       display: block;
-      margin: 0 auto 2px;
-      animation: logoFloat 3s ease-in-out infinite;
-      filter: drop-shadow(0 6px 16px rgba(27,94,32,0.2));
+      margin: 0 auto 10px;
+      animation: logoFloat 3.5s ease-in-out infinite;
+    }
+    .tagline {
+      font-family: Georgia, serif;
+      font-size: 0.95rem;
+      color: #c8860a;
+      font-style: italic;
+      letter-spacing: 0.12em;
+      animation: taglineIn 1.2s ease 0.4s both;
+    }
+
+    /* ── Headings ── */
+    .auth-card h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #0a2f0a;
+      text-align: center;
+      margin: 0 0 6px;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+    .auth-subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 0.88rem;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease 0.4s both;
+    }
+
+    /* ── Inputs ── */
+    .form-group {
+      margin-bottom: 18px;
+      animation: fadeUp 0.6s ease 0.5s both;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 7px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 13px 16px;
+      border: 2px solid #e8f5e9;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      background: #f9fdf9;
+      color: #222;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      outline: none;
+    }
+    .form-group input:focus {
+      border-color: #2e7d32;
+      background: #fff;
+      animation: inputFocus 0.3s ease forwards;
+    }
+
+    /* ── Buttons ── */
+    .btn-login, .btn-browse {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s, box-shadow 0.18s;
+      animation: fadeUp 0.6s ease 0.6s both;
+    }
+    .btn-login {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(27,94,32,0.35);
+      margin-bottom: 14px;
+    }
+    .btn-login::after, .btn-browse::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 2.5s linear infinite;
+    }
+    .btn-login:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(27,94,32,0.45); }
+    .btn-login:active { transform:translateY(0); }
+    .btn-browse {
+      background: linear-gradient(135deg, #388e3c, #2e7d32);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(27,94,32,0.3);
+      animation-delay: 0.75s;
+    }
+    .btn-browse:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(27,94,32,0.4); }
+
+    /* ── Form link ── */
+    .form-link {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #777;
+      margin-bottom: 14px;
+      animation: fadeUp 0.6s ease 0.65s both;
+    }
+    .form-link a { color: #2e7d32; font-weight: 700; text-decoration: none; }
+    .form-link a:hover { text-decoration: underline; }
+
+    /* ── Alert ── */
+    .alert-error {
+      background: #fff3f3;
+      border: 1px solid #f5c6c6;
+      color: #c62828;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      margin-bottom: 14px;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 0 14px;
+      animation: fadeUp 0.6s ease 0.68s both;
+    }
+    .divider span { flex:1; height:1px; background:#e8e8e8; }
+    .divider p { font-size:0.78rem; color:#bbb; white-space:nowrap; }
+
+    @media (max-width: 500px) {
+      .auth-card { padding:32px 22px 28px; border-radius:20px; }
+      .login-logo-img { height:170px; }
+      .auth-card h2 { font-size:1.5rem; }
+      .orb-1 { width:280px; height:280px; }
+      .orb-2 { width:320px; height:320px; }
     }
   </style>
 </head>
 <body>
 <div class="auth-page">
+  <!-- Background orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div class="orb orb-5"></div>
+
   <div class="auth-card">
     <div class="auth-logo">
-      <img src="/images/shazz-logo.png" alt="Shazz Natural's" class="login-logo-img"/>
+      <img src="/images/shazz-logo.png" alt="Shazz Natural's" class="login-logo-img site-logo"/>
       <div class="tagline">From God's Own Country</div>
     </div>
+
     <h2>Welcome Back</h2>
     <p class="auth-subtitle">Login to your account to view orders and more</p>
+
     <div id="login-alert"></div>
+
     <div class="form-group">
       <label><i class="fa fa-envelope"></i> Email Address</label>
       <input type="email" id="email" placeholder="your@email.com" />
     </div>
-    <div class="form-group">
+    <div class="form-group" style="animation-delay:0.55s">
       <label><i class="fa fa-lock"></i> Password</label>
       <input type="password" id="password" placeholder="Your password" />
     </div>
-    <button onclick="doLogin()" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:1rem" id="login-btn">
-      <i class="fa fa-sign-in-alt"></i> Login
+
+    <button onclick="doLogin()" class="btn-login" id="login-btn">
+      <i class="fa fa-sign-in-alt"></i> LOGIN
     </button>
+
     <div class="form-link">Don't have an account? <a href="/register.html">Register here</a></div>
-    <a href="/products.html" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:1rem;margin-top:8px;text-decoration:none">
-      <i class="fa fa-shopping-bag"></i> Browse Products
+
+    <div class="divider"><span></span><p>or</p><span></span></div>
+
+    <a href="/products.html" class="btn-browse">
+      <i class="fa fa-shopping-bag"></i> BROWSE PRODUCTS
     </a>
   </div>
 </div>
@@ -65,23 +335,23 @@
 
   async function doLogin() {
     const btn = document.getElementById('login-btn');
-    const alert = document.getElementById('login-alert');
+    const alertEl = document.getElementById('login-alert');
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    if (!email || !password) { alert.innerHTML = '<div class="alert alert-error">Please enter email and password.</div>'; return; }
-    btn.innerHTML = '<span class="spinner spinner-sm"></span> Logging in...';
+    if (!email || !password) { alertEl.innerHTML = '<div class="alert-error"><i class="fa fa-exclamation-circle"></i> Please enter email and password.</div>'; return; }
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Logging in...';
     btn.disabled = true;
     const res = await fetch('/api/auth/login', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({email, password})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, password})
     });
     const data = await res.json();
     if (data.success) {
       const redirect = new URLSearchParams(window.location.search).get('redirect') || '/dashboard.html';
       window.location.href = redirect;
     } else {
-      alert.innerHTML = '<div class="alert alert-error"><i class="fa fa-exclamation-circle"></i> ' + (data.error || 'Login failed') + '</div>';
-      btn.innerHTML = '<i class="fa fa-sign-in-alt"></i> Login';
+      alertEl.innerHTML = '<div class="alert-error"><i class="fa fa-exclamation-circle"></i> ' + (data.error || 'Login failed') + '</div>';
+      btn.innerHTML = '<i class="fa fa-sign-in-alt"></i> LOGIN';
       btn.disabled = false;
     }
   }
