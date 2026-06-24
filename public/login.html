@@ -5,12 +5,32 @@
   <title>Login – Shazz Natural's</title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.03); }
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .auth-card { animation: fadeSlideIn 0.6s ease; }
+    .login-logo-img {
+      height: 130px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 4px;
+      animation: logoFloat 3s ease-in-out infinite;
+      filter: drop-shadow(0 4px 12px rgba(27,94,32,0.15));
+    }
+  </style>
 </head>
 <body>
 <div class="auth-page">
   <div class="auth-card">
     <div class="auth-logo">
-      <img src="/images/logo.svg" alt="Shazz Natural's" class="site-logo" style="height:70px;object-fit:contain;margin-bottom:6px"/>
+      <img src="/images/logo.svg" alt="Shazz Natural's" class="site-logo login-logo-img"/>
       <div class="tagline">From God's Own Country</div>
     </div>
     <h2>Welcome Back</h2>
