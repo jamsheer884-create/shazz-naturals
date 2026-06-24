@@ -568,9 +568,10 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       User.countDocuments(),
       Order.find().lean()
     ]);
-    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const activeOrders = orders.filter(o => o.status !== 'Cancelled');
+    const revenue = activeOrders.reduce((s, o) => s + (o.total || 0), 0);
     const pendingOrders = orders.filter(o => o.status === 'Pending').length;
-    res.json({ products, customers, orders: orders.length, pendingOrders, revenue, recentOrders: orders.slice(0, 5).map(o => ({ ...o, id: o.orderId })) });
+    res.json({ products, customers, orders: activeOrders.length, pendingOrders, revenue, recentOrders: orders.slice(0, 5).map(o => ({ ...o, id: o.orderId })) });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
