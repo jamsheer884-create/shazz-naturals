@@ -268,20 +268,35 @@
     empty.classList.add('hidden');
     content.classList.remove('hidden');
 
-    const settings = window._settings || {};
-    const freeShipping = settings.freeShippingAbove || 500;
-    const shippingCharge = settings.shippingCharge || 60;
-
     const subtotal = cartData.reduce((s, i) => s + i.price * i.quantity, 0);
-    const shipping = subtotal >= freeShipping ? 0 : shippingCharge;
+
+    // Calculate total weight in grams
+    const totalWeightG = cartData.reduce((s, i) => {
+      const w = parseFloat((i.weight || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+      return s + w * i.quantity;
+    }, 0);
+
+    // Delivery charge by weight
+    function getDeliveryCharge(grams) {
+      if (grams <= 0)    return 50;
+      if (grams <= 500)  return 50;
+      if (grams <= 1000) return 70;
+      if (grams <= 1500) return 85;
+      if (grams <= 2000) return 120;
+      if (grams <= 3000) return 180;
+      return 225;
+    }
+    const shipping = getDeliveryCharge(totalWeightG);
     const total = subtotal + shipping;
     const itemCount = cartData.reduce((s, i) => s + i.quantity, 0);
+    const weightLabel = totalWeightG >= 1000
+      ? (totalWeightG / 1000).toFixed(2) + ' kg'
+      : Math.round(totalWeightG) + ' g';
 
     document.getElementById('item-count').textContent = itemCount;
     document.getElementById('subtotal').textContent = '₹' + subtotal;
-    document.getElementById('shipping-text').innerHTML = shipping === 0
-      ? '<span class="free">FREE 🎉</span>'
-      : '₹' + shipping + ` <span style="font-size:0.72rem;color:#777">(free above ₹${freeShipping})</span>`;
+    document.getElementById('shipping-text').innerHTML =
+      '₹' + shipping + ` <span style="font-size:0.72rem;color:#777">(${weightLabel} total weight)</span>`;
     document.getElementById('total-amount').textContent = '₹' + total;
     document.getElementById('modal-total').textContent = '₹' + total;
 
