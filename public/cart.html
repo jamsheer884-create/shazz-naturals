@@ -273,7 +273,7 @@
     // Calculate total weight in grams (+ 6g packing material per unit)
     const totalWeightG = cartData.reduce((s, i) => {
       const w = parseFloat((i.weight || '0').toString().replace(/[^0-9.]/g, '')) || 0;
-      return s + (w + 6) * i.quantity;
+      return s + (w + 10) * i.quantity;
     }, 0);
 
     // Delivery charge by weight
