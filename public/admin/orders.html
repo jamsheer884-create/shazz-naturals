@@ -224,8 +224,23 @@
     if (data.success) {
       const o = allOrders.find(x => x.id === id);
       if (o) o.status = status;
-      showAlert('Order status updated to ' + status, 'success');
+      if (status !== 'Cancelled') showWAReminder(id, status, o ? o.customerName : '', o ? o.customerPhone : '');
+      else showAlert('Order status updated to ' + status, 'success');
     }
+  }
+
+  function showWAReminder(orderId, status, name, phone) {
+    const el = document.getElementById('page-alert');
+    const msg = waMessage(orderId, status, name);
+    const waLink = 'https://wa.me/' + (phone||'').replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent(msg);
+    el.innerHTML = `
+      <div class="adm-alert adm-alert-success" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <span>✅ Status updated to <strong>${status}</strong>. Don't forget to notify the customer!</span>
+        <a href="${waLink}" target="_blank" class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none;white-space:nowrap">
+          <i class="fab fa-whatsapp"></i> Send WhatsApp Now
+        </a>
+      </div>`;
+    setTimeout(() => el.innerHTML = '', 15000);
   }
 
   // ── WhatsApp Order Modal ──────────────────────────────────────────────────
