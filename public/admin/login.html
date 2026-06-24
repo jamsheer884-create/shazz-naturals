@@ -5,10 +5,116 @@
   <title>Admin Login – Shazz Natural's</title>
   <link rel="stylesheet" href="/css/admin.css"/>
   <style>
-    @keyframes logoFloat {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(-10px) scale(1.04); }
+    /* ── Background animations ── */
+    @keyframes bgShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
+    @keyframes orbMove1 {
+      0%,100% { transform: translate(0,0) scale(1); opacity:0.18; }
+      33%      { transform: translate(60px,-40px) scale(1.3); opacity:0.28; }
+      66%      { transform: translate(-30px,50px) scale(0.8); opacity:0.12; }
+    }
+    @keyframes orbMove2 {
+      0%,100% { transform: translate(0,0) scale(1); opacity:0.15; }
+      33%      { transform: translate(-80px,30px) scale(1.4); opacity:0.25; }
+      66%      { transform: translate(50px,-60px) scale(0.7); opacity:0.10; }
+    }
+    @keyframes orbMove3 {
+      0%,100% { transform: translate(0,0) scale(1); opacity:0.12; }
+      50%      { transform: translate(40px,70px) scale(1.5); opacity:0.22; }
+    }
+    @keyframes leafFloat {
+      0%   { transform: translateY(110vh) rotate(0deg) translateX(0); opacity:0; }
+      5%   { opacity:0.8; }
+      90%  { opacity:0.5; }
+      100% { transform: translateY(-80px) rotate(720deg) translateX(40px); opacity:0; }
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(40px) scale(0.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes logoFloat {
+      0%,100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 6px 20px rgba(27,94,32,0.3)); }
+      50%      { transform: translateY(-12px) scale(1.04); filter: drop-shadow(0 16px 30px rgba(27,94,32,0.5)); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    /* ── Page background ── */
+    .adm-login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #071a07, #0d3b0d, #1b5e20, #2e7d32, #1a4a1a, #0a2a0a, #071a07);
+      background-size: 400% 400%;
+      animation: bgShift 10s ease infinite;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Glow orbs ── */
+    .adm-login-page::before,
+    .adm-login-page::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .adm-login-page::before {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(76,175,80,0.22) 0%, transparent 70%);
+      top: -100px; left: -100px;
+      animation: orbMove1 12s ease-in-out infinite;
+    }
+    .adm-login-page::after {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(139,195,74,0.18) 0%, transparent 70%);
+      bottom: -80px; right: -80px;
+      animation: orbMove2 15s ease-in-out infinite;
+    }
+
+    /* ── Centre orb ── */
+    .orb-center {
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(46,125,50,0.15) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: orbMove3 18s ease-in-out infinite;
+    }
+
+    /* ── Floating leaves ── */
+    .leaf-particle {
+      position: absolute;
+      bottom: -40px;
+      font-size: 1.2rem;
+      pointer-events: none;
+      animation: leafFloat linear infinite;
+      opacity: 0;
+    }
+
+    /* ── Card ── */
+    .adm-login-card {
+      position: relative;
+      z-index: 10;
+      background: rgba(255,255,255,0.97);
+      border-radius: 20px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1);
+      padding: 40px 40px 32px;
+      width: 100%;
+      max-width: 420px;
+      animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+      backdrop-filter: blur(10px);
+    }
+
+    /* ── Logo ── */
     .adm-login-logo img {
       height: 160px;
       width: 100%;
@@ -16,20 +122,58 @@
       object-fit: contain;
       display: block;
       margin: 0 auto 10px;
-      animation: logoFloat 3s ease-in-out infinite;
-      filter: drop-shadow(0 6px 16px rgba(27,94,32,0.2));
+      animation: logoFloat 3.5s ease-in-out infinite;
+    }
+    .adm-login-logo h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0a2f0a;
+      text-align: center;
+      margin: 0 0 4px;
+    }
+    .adm-login-logo p {
+      font-size: 0.8rem;
+      color: #777;
+      text-align: center;
+      margin: 0 0 20px;
+    }
+
+    /* ── Sign In button shimmer ── */
+    .adm-btn-primary {
+      position: relative;
+      overflow: hidden;
+    }
+    .adm-btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2.5s linear infinite;
     }
   </style>
 </head>
 <body>
 <div class="adm-login-page">
+  <div class="orb-center"></div>
+
+  <!-- Floating leaf particles -->
+  <span class="leaf-particle" style="left:5%;animation-duration:12s;animation-delay:0s;font-size:1rem">🍃</span>
+  <span class="leaf-particle" style="left:15%;animation-duration:16s;animation-delay:2s;font-size:0.8rem">🌿</span>
+  <span class="leaf-particle" style="left:28%;animation-duration:14s;animation-delay:5s;font-size:1.3rem">🍃</span>
+  <span class="leaf-particle" style="left:42%;animation-duration:18s;animation-delay:1s;font-size:0.9rem">🌿</span>
+  <span class="leaf-particle" style="left:58%;animation-duration:13s;animation-delay:7s;font-size:1.1rem">🍃</span>
+  <span class="leaf-particle" style="left:70%;animation-duration:17s;animation-delay:3s;font-size:0.8rem">🌿</span>
+  <span class="leaf-particle" style="left:82%;animation-duration:11s;animation-delay:9s;font-size:1.2rem">🍃</span>
+  <span class="leaf-particle" style="left:92%;animation-duration:15s;animation-delay:4s;font-size:0.9rem">🌿</span>
+
   <div class="adm-login-card">
     <div class="adm-login-logo">
       <img src="/images/shazz-logo.png" alt="Shazz Natural's"/>
       <h2>Shazz Natural's</h2>
       <p>Admin Control Panel</p>
     </div>
-    <h3>Sign in to continue</h3>
+    <h3 style="font-size:1.1rem;margin-bottom:24px;text-align:center;color:#444">Sign in to continue</h3>
     <div id="alert"></div>
     <div class="adm-form-group">
       <label>Admin Username</label>
