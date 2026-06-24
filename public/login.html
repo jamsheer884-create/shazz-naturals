@@ -10,7 +10,7 @@
 <div class="auth-page">
   <div class="auth-card">
     <div class="auth-logo">
-      <img src="/images/shazz-logo.png" alt="Shazz Natural's" style="height:70px;object-fit:contain;margin-bottom:6px"/>
+      <img src="/images/logo.svg" alt="Shazz Natural's" class="site-logo" style="height:70px;object-fit:contain;margin-bottom:6px"/>
       <div class="tagline">From God's Own Country</div>
     </div>
     <h2>Welcome Back</h2>
@@ -34,6 +34,7 @@
 <script src="/js/main.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
+    await loadSettings();
     const me = await fetch('/api/auth/me').then(r => r.json());
     if (me.user) window.location.href = me.user.role === 'admin' ? '/admin/dashboard.html' : '/dashboard.html';
     document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
