@@ -53,6 +53,44 @@
 <footer style="background:linear-gradient(135deg,#0a2f0a,#1a1a1a);color:rgba(255,255,255,0.7);text-align:center;padding:24px">
   © 2024 Shazz Natural's – Kerala, India
 </footer>
+<!-- WhatsApp Quick Info Modal -->
+<div id="wa-quick-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:16px;padding:28px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;color:#1b5e20;display:flex;align-items:center;gap:8px">
+        <i class="fab fa-whatsapp" style="color:#25d366"></i> Quick Details
+      </h3>
+      <button onclick="document.getElementById('wa-quick-modal').classList.add('hidden')" style="background:none;border:none;font-size:1.3rem;cursor:pointer">✕</button>
+    </div>
+    <p style="font-size:0.82rem;color:#777;margin-bottom:16px">So we can track your order in our system.</p>
+    <div id="wa-quick-alert"></div>
+    <div class="form-group">
+      <label>Your Name *</label>
+      <input type="text" id="wa-quick-name" placeholder="Full name"/>
+    </div>
+    <div class="form-group">
+      <label>Phone Number *</label>
+      <div style="display:flex;gap:8px">
+        <select id="wa-quick-country" style="flex:0 0 118px;padding:10px 8px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem">
+          <option value="91" selected>🇮🇳 India +91</option>
+          <option value="971">🇦🇪 UAE +971</option>
+          <option value="966">🇸🇦 Saudi +966</option>
+          <option value="974">🇶🇦 Qatar +974</option>
+          <option value="965">🇰🇼 Kuwait +965</option>
+          <option value="968">🇴🇲 Oman +968</option>
+          <option value="973">🇧🇭 Bahrain +973</option>
+          <option value="1">🇺🇸 USA +1</option>
+          <option value="44">🇬🇧 UK +44</option>
+        </select>
+        <input type="tel" id="wa-quick-phone" placeholder="98765 43210" style="flex:1"/>
+      </div>
+    </div>
+    <button onclick="confirmProductWhatsApp()" class="btn btn-whatsapp" style="width:100%;justify-content:center;padding:13px;font-size:1rem;margin-top:8px">
+      <i class="fab fa-whatsapp"></i> Continue to WhatsApp
+    </button>
+  </div>
+</div>
+
 <a href="https://wa.me/917902302884" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
 <div class="toast-container" id="toast-container"></div>
 
@@ -200,8 +238,40 @@
 
   function buyNowWhatsApp() {
     if (!currentProduct) return;
-    const msg = `Hi Shazz Natural's! 🌿\n\nI want to order:\n• *${currentProduct.name}* x${quantity} - ₹${currentProduct.price * quantity}\n\nPlease confirm availability and delivery details. Thank you!`;
-    window.open('https://wa.me/917902302884?text=' + encodeURIComponent(msg), '_blank');
+    document.getElementById('wa-quick-name').value = '';
+    document.getElementById('wa-quick-phone').value = '';
+    document.getElementById('wa-quick-alert').innerHTML = '';
+    document.getElementById('wa-quick-modal').classList.remove('hidden');
+  }
+
+  async function confirmProductWhatsApp() {
+    const name = document.getElementById('wa-quick-name').value.trim();
+    const phoneNum = document.getElementById('wa-quick-phone').value.trim();
+    const alertDiv = document.getElementById('wa-quick-alert');
+    if (!name || !phoneNum) {
+      alertDiv.innerHTML = '<div class="alert alert-error" style="margin-bottom:10px">Please enter your name and phone number.</div>';
+      return;
+    }
+    const phone = '+' + document.getElementById('wa-quick-country').value + ' ' + phoneNum;
+    const settings = window._settings || {};
+    const waNumber = (settings.whatsapp || '917902302884').replace(/[^0-9]/g, '');
+
+    // Save order to database
+    try {
+      await fetch('/api/orders/whatsapp', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          customerName: name,
+          customerPhone: phone,
+          items: [{ name: currentProduct.name, price: currentProduct.price, quantity, productId: currentProduct.id, image: currentProduct.image, weight: currentProduct.weight || '' }]
+        })
+      });
+    } catch(e) { /* non-blocking */ }
+
+    document.getElementById('wa-quick-modal').classList.add('hidden');
+    const msg = `Hi Shazz Natural's! 🌿\n\nName: ${name}\nPhone: ${phone}\n\nI want to order:\n• *${currentProduct.name}* x${quantity} = ₹${currentProduct.price * quantity}\n\nPlease confirm availability and delivery details. Thank you!`;
+    window.open('https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg), '_blank');
   }
 
   async function loadRelated(category, excludeId) {
