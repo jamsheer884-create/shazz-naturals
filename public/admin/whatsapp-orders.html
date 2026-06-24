@@ -161,9 +161,9 @@
         </td>
         <td style="font-size:0.78rem;color:#888">${new Date(o.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}<br><span style="font-size:0.7rem">${new Date(o.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span></td>
         <td>
-          <a href="https://wa.me/${(o.customerPhone||'').replace(/[^0-9]/g,'')}?text=${encodeURIComponent('Hi ' + (o.customerName||'') + '! 🌿 Your Shazz Natural\'s order ' + o.id + ' has been updated to: *' + o.status + '*. Thank you for ordering with us!')}"
-             target="_blank" class="adm-btn adm-btn-outline adm-btn-sm" title="Message customer on WhatsApp" style="background:#e7fdf0;border-color:#86efac;color:#15803d">
-            <i class="fab fa-whatsapp"></i> Message
+          <a href="https://wa.me/${(o.customerPhone||'').replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMessage(o.id, o.status, o.customerName))}"
+             target="_blank" class="adm-btn adm-btn-outline adm-btn-sm" title="Send WhatsApp message" style="background:#e7fdf0;border-color:#86efac;color:#15803d">
+            <i class="fab fa-whatsapp"></i> ${o.status}
           </a>
         </td>
       </tr>
@@ -219,6 +219,20 @@
     const el = document.getElementById('page-alert');
     el.innerHTML = `<div class="adm-alert adm-alert-${type === 'error' ? 'danger' : 'success'}">${msg}</div>`;
     setTimeout(() => el.innerHTML = '', 4000);
+  }
+
+  function waMessage(orderId, status, name) {
+    const n = name || 'there';
+    if (status === 'Pending') {
+      return `Hi ${n}! 👋 Stock Available! 📦 ${orderId}\nOnce the payment is completed, please send me a screenshot of the transaction. 📸\nAlso, could you please share your delivery details so I can arrange everything for you? Thank you! 🙏😊\n\n👤 Name:\n🏠 Address:\n📍 Pin code:\n📱 Mobile number:\n💬 WhatsApp number:`;
+    } else if (status === 'Confirmed') {
+      return `Thank you for your payment! 🎉\n\nYour order has been confirmed successfully. ✅\n\n📦 Order ID: ${orderId}\n🚚 Estimated Delivery: Within 1 week\n\nWe'll notify you once your item has been shipped. If you have any questions, feel free to reach out anytime!\n\nThank you for shopping with us! 🙏`;
+    } else if (status === 'Shipped') {
+      return `🚚 Your Order is On Its Way!\n\n📦 Order ID: ${orderId}\n✅ Status: Shipped & Out for Delivery\n\nYour package has been handed over to our delivery team and is heading your way! We'll keep you updated on the progress.\n\nThank you for your patience and for shopping with us! 🛍️\nFeel free to reach out if you have any questions. 😊`;
+    } else if (status === 'Delivered') {
+      return `🎉 Your Order Has Been Delivered!\n\n📦 Order ID: ${orderId}\n✅ Status: Delivered Successfully\n\nThank you for shopping with us! 🛍️\nWe hope to see you again soon. 😊`;
+    }
+    return `Hi ${n}! Your order ${orderId} status: ${status}. Thank you for shopping with Shazz Natural's! 🌿`;
   }
 
   async function doLogout() {
