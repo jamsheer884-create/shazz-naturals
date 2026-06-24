@@ -5,140 +5,146 @@
   <title>Admin Login – Shazz Natural's</title>
   <link rel="stylesheet" href="/css/admin.css"/>
   <style>
-    /* ── Background animations ── */
-    @keyframes bgShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @keyframes orbDrift1 {
+      0%,100% { transform: translate(0px, 0px) scale(1); }
+      25%      { transform: translate(40px, -30px) scale(1.08); }
+      50%      { transform: translate(-20px, 50px) scale(0.95); }
+      75%      { transform: translate(30px, 20px) scale(1.05); }
     }
-    @keyframes orbMove1 {
-      0%,100% { transform: translate(0,0) scale(1); opacity:0.18; }
-      33%      { transform: translate(60px,-40px) scale(1.3); opacity:0.28; }
-      66%      { transform: translate(-30px,50px) scale(0.8); opacity:0.12; }
+    @keyframes orbDrift2 {
+      0%,100% { transform: translate(0px, 0px) scale(1); }
+      30%      { transform: translate(-50px, 40px) scale(1.1); }
+      60%      { transform: translate(30px, -60px) scale(0.9); }
     }
-    @keyframes orbMove2 {
-      0%,100% { transform: translate(0,0) scale(1); opacity:0.15; }
-      33%      { transform: translate(-80px,30px) scale(1.4); opacity:0.25; }
-      66%      { transform: translate(50px,-60px) scale(0.7); opacity:0.10; }
+    @keyframes orbDrift3 {
+      0%,100% { transform: translate(0px, 0px) scale(1); }
+      40%      { transform: translate(60px, 30px) scale(1.12); }
+      80%      { transform: translate(-40px, -20px) scale(0.92); }
     }
-    @keyframes orbMove3 {
-      0%,100% { transform: translate(0,0) scale(1); opacity:0.12; }
-      50%      { transform: translate(40px,70px) scale(1.5); opacity:0.22; }
-    }
-    @keyframes leafFloat {
-      0%   { transform: translateY(110vh) rotate(0deg) translateX(0); opacity:0; }
-      5%   { opacity:0.8; }
-      90%  { opacity:0.5; }
-      100% { transform: translateY(-80px) rotate(720deg) translateX(40px); opacity:0; }
+    @keyframes orbDrift4 {
+      0%,100% { transform: translate(0px, 0px) scale(1); }
+      35%      { transform: translate(-30px, -50px) scale(1.06); }
+      70%      { transform: translate(50px, 40px) scale(0.94); }
     }
     @keyframes cardIn {
-      from { opacity:0; transform:translateY(40px) scale(0.97); }
-      to   { opacity:1; transform:translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(30px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
     @keyframes logoFloat {
-      0%,100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 6px 20px rgba(27,94,32,0.3)); }
-      50%      { transform: translateY(-12px) scale(1.04); filter: drop-shadow(0 16px 30px rgba(27,94,32,0.5)); }
+      0%,100% { transform: translateY(0px); filter: drop-shadow(0 8px 24px rgba(76,175,80,0.35)); }
+      50%      { transform: translateY(-10px); filter: drop-shadow(0 18px 36px rgba(76,175,80,0.55)); }
     }
     @keyframes shimmer {
       0%   { background-position: -200% center; }
       100% { background-position: 200% center; }
     }
 
-    /* ── Page background ── */
+    body { min-height: 100vh; }
+
     .adm-login-page {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #071a07, #0d3b0d, #1b5e20, #2e7d32, #1a4a1a, #0a2a0a, #071a07);
-      background-size: 400% 400%;
-      animation: bgShift 10s ease infinite;
+      background: linear-gradient(135deg, #071a07 0%, #0d3319 40%, #0f4020 70%, #071a07 100%);
       position: relative;
       overflow: hidden;
     }
 
-    /* ── Glow orbs ── */
-    .adm-login-page::before,
-    .adm-login-page::after {
-      content: '';
+    /* Large blurred orbs like TrueBooks style */
+    .orb {
       position: absolute;
       border-radius: 50%;
+      filter: blur(80px);
       pointer-events: none;
     }
-    .adm-login-page::before {
+    .orb-1 {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(56,142,60,0.35) 0%, rgba(27,94,32,0.1) 70%, transparent 100%);
+      top: -80px; left: -80px;
+      animation: orbDrift1 14s ease-in-out infinite;
+    }
+    .orb-2 {
       width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(76,175,80,0.22) 0%, transparent 70%);
-      top: -100px; left: -100px;
-      animation: orbMove1 12s ease-in-out infinite;
+      background: radial-gradient(circle, rgba(76,175,80,0.22) 0%, rgba(46,125,50,0.08) 70%, transparent 100%);
+      bottom: -120px; right: -100px;
+      animation: orbDrift2 18s ease-in-out infinite;
     }
-    .adm-login-page::after {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(139,195,74,0.18) 0%, transparent 70%);
-      bottom: -80px; right: -80px;
-      animation: orbMove2 15s ease-in-out infinite;
+    .orb-3 {
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(139,195,74,0.20) 0%, rgba(104,159,56,0.06) 70%, transparent 100%);
+      top: 50%; left: -60px;
+      transform: translateY(-50%);
+      animation: orbDrift3 22s ease-in-out infinite;
     }
-
-    /* ── Centre orb ── */
-    .orb-center {
-      position: absolute;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(46,125,50,0.15) 0%, transparent 70%);
-      top: 50%; left: 50%;
-      transform: translate(-50%,-50%);
-      border-radius: 50%;
-      pointer-events: none;
-      animation: orbMove3 18s ease-in-out infinite;
+    .orb-4 {
+      width: 380px; height: 380px;
+      background: radial-gradient(circle, rgba(56,142,60,0.25) 0%, rgba(27,94,32,0.08) 70%, transparent 100%);
+      top: 20%; right: -80px;
+      animation: orbDrift4 16s ease-in-out infinite;
     }
-
-    /* ── Floating leaves ── */
-    .leaf-particle {
-      position: absolute;
-      bottom: -40px;
-      font-size: 1.2rem;
-      pointer-events: none;
-      animation: leafFloat linear infinite;
-      opacity: 0;
+    .orb-5 {
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(174,213,129,0.15) 0%, transparent 70%);
+      bottom: 15%; left: 20%;
+      animation: orbDrift1 20s ease-in-out infinite reverse;
     }
 
-    /* ── Card ── */
+    /* Card */
     .adm-login-card {
       position: relative;
       z-index: 10;
-      background: rgba(255,255,255,0.97);
-      border-radius: 20px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1);
-      padding: 40px 40px 32px;
+      background: rgba(255,255,255,0.96);
+      border-radius: 24px;
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+      padding: 44px 44px 36px;
       width: 100%;
-      max-width: 420px;
-      animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
-      backdrop-filter: blur(10px);
+      max-width: 440px;
+      animation: cardIn 0.8s cubic-bezier(0.22,1,0.36,1) both;
     }
 
-    /* ── Logo ── */
+    /* Logo */
+    .adm-login-logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
     .adm-login-logo img {
-      height: 160px;
+      height: 150px;
       width: 100%;
-      max-width: 320px;
+      max-width: 300px;
       object-fit: contain;
       display: block;
-      margin: 0 auto 10px;
+      margin: 0 auto 12px;
       animation: logoFloat 3.5s ease-in-out infinite;
     }
     .adm-login-logo h2 {
       font-size: 1.5rem;
       font-weight: 700;
       color: #0a2f0a;
-      text-align: center;
-      margin: 0 0 4px;
+      margin-bottom: 4px;
     }
     .adm-login-logo p {
       font-size: 0.8rem;
-      color: #777;
-      text-align: center;
-      margin: 0 0 20px;
+      color: #888;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
-    /* ── Sign In button shimmer ── */
+    /* Divider */
+    .login-divider {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 20px;
+    }
+
+    /* Sign In button shimmer */
     .adm-btn-primary {
       position: relative;
       overflow: hidden;
@@ -147,25 +153,38 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
       background-size: 200% 100%;
       animation: shimmer 2.5s linear infinite;
+    }
+
+    /* Footer text */
+    .login-footer {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 0.78rem;
+      color: #aaa;
+      letter-spacing: 0.04em;
+    }
+    .login-footer a { color: #2e7d32; font-weight: 600; text-decoration: none; }
+    .login-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 500px) {
+      .adm-login-card { padding: 32px 24px 28px; margin: 16px; }
+      .adm-login-logo img { height: 120px; }
+      .orb-1 { width: 260px; height: 260px; }
+      .orb-2 { width: 300px; height: 300px; }
     }
   </style>
 </head>
 <body>
 <div class="adm-login-page">
-  <div class="orb-center"></div>
-
-  <!-- Floating leaf particles -->
-  <span class="leaf-particle" style="left:5%;animation-duration:12s;animation-delay:0s;font-size:1rem">🍃</span>
-  <span class="leaf-particle" style="left:15%;animation-duration:16s;animation-delay:2s;font-size:0.8rem">🌿</span>
-  <span class="leaf-particle" style="left:28%;animation-duration:14s;animation-delay:5s;font-size:1.3rem">🍃</span>
-  <span class="leaf-particle" style="left:42%;animation-duration:18s;animation-delay:1s;font-size:0.9rem">🌿</span>
-  <span class="leaf-particle" style="left:58%;animation-duration:13s;animation-delay:7s;font-size:1.1rem">🍃</span>
-  <span class="leaf-particle" style="left:70%;animation-duration:17s;animation-delay:3s;font-size:0.8rem">🌿</span>
-  <span class="leaf-particle" style="left:82%;animation-duration:11s;animation-delay:9s;font-size:1.2rem">🍃</span>
-  <span class="leaf-particle" style="left:92%;animation-duration:15s;animation-delay:4s;font-size:0.9rem">🌿</span>
+  <!-- Background orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div class="orb orb-5"></div>
 
   <div class="adm-login-card">
     <div class="adm-login-logo">
@@ -173,7 +192,7 @@
       <h2>Shazz Natural's</h2>
       <p>Admin Control Panel</p>
     </div>
-    <h3 style="font-size:1.1rem;margin-bottom:24px;text-align:center;color:#444">Sign in to continue</h3>
+    <div class="login-divider">Sign in to continue</div>
     <div id="alert"></div>
     <div class="adm-form-group">
       <label>Admin Username</label>
@@ -186,8 +205,8 @@
     <button onclick="doLogin()" class="adm-btn adm-btn-primary adm-btn-lg" style="width:100%;justify-content:center;margin-top:8px" id="login-btn">
       Sign In
     </button>
-    <div style="text-align:center;margin-top:20px;font-size:0.8rem;color:#888">
-      <a href="/" style="color:#1b5e20">← Back to Website</a>
+    <div class="login-footer">
+      <a href="/">← Back to Website</a>
     </div>
   </div>
 </div>
@@ -200,10 +219,10 @@
 
   async function doLogin() {
     const btn = document.getElementById('login-btn');
-    const alert = document.getElementById('alert');
+    const alertEl = document.getElementById('alert');
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
-    if (!username || !password) { alert.innerHTML = '<div class="adm-alert adm-alert-error">Please enter username and password.</div>'; return; }
+    if (!username || !password) { alertEl.innerHTML = '<div class="adm-alert adm-alert-error">Please enter username and password.</div>'; return; }
     btn.innerHTML = '<span class="adm-spinner"></span> Signing in...';
     btn.disabled = true;
     const res = await fetch('/api/auth/admin-login', {
@@ -214,7 +233,7 @@
     if (data.success) {
       window.location.href = '/admin/dashboard.html';
     } else {
-      alert.innerHTML = '<div class="adm-alert adm-alert-error">❌ ' + (data.error || 'Invalid credentials') + '</div>';
+      alertEl.innerHTML = '<div class="adm-alert adm-alert-error">❌ ' + (data.error || 'Invalid credentials') + '</div>';
       btn.innerHTML = 'Sign In';
       btn.disabled = false;
     }
