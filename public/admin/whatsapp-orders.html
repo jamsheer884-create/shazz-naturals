@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WhatsApp Orders – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .wa-stat-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+    .wa-stat-box { flex:1; min-width:140px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px 20px; }
+    .wa-stat-box .num { font-size:1.7rem; font-weight:700; color:#16a34a; }
+    .wa-stat-box .lbl { font-size:0.8rem; color:#555; margin-top:2px; }
+    .badge-wa { background:#dcfce7; color:#16a34a; font-size:0.75rem; padding:3px 9px; border-radius:20px; font-weight:600; }
+    .status-badge { font-size:0.75rem; padding:3px 10px; border-radius:20px; font-weight:600; }
+    .s-Pending   { background:#fef9c3; color:#854d0e; }
+    .s-Confirmed { background:#dbeafe; color:#1e40af; }
+    .s-Shipped   { background:#e0f2fe; color:#0369a1; }
+    .s-Delivered { background:#dcfce7; color:#15803d; }
+    .s-Cancelled { background:#fee2e2; color:#dc2626; }
+    .expand-btn { background:none; border:none; cursor:pointer; color:#2d6a4f; font-size:0.85rem; padding:0; }
+    .order-detail { display:none; background:#f8fdf8; border-top:1px solid #e5f0e5; padding:12px 16px; font-size:0.84rem; }
+    .order-detail.open { display:block; }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .detail-item label { font-weight:600; color:#555; display:block; font-size:0.78rem; }
+    .detail-item span { color:#222; }
+    .items-ul { margin:8px 0 0; padding-left:18px; }
+    .items-ul li { margin-bottom:3px; color:#333; }
+    .action-row { display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <div class="adm-nav-section">Main</div>
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/categories.html"><span class="nav-icon"><i class="fa fa-th-large"></i></span> Categories</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/whatsapp-orders.html" class="active"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WhatsApp Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <div class="adm-nav-section">Settings</div>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Site Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title">
+        <h1><i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp Orders</h1>
+        <p>Orders placed by customers through WhatsApp from the website</p>
+      </div>
+    </div>
+    <div class="adm-content">
+      <div id="page-alert"></div>
+
+      <!-- Stats -->
+      <div class="wa-stat-row" id="wa-stats">
+        <div class="wa-stat-box"><div class="num" id="st-total">—</div><div class="lbl">Total WhatsApp Orders</div></div>
+        <div class="wa-stat-box"><div class="num" id="st-pending">—</div><div class="lbl">Pending</div></div>
+        <div class="wa-stat-box"><div class="num" id="st-confirmed">—</div><div class="lbl">Confirmed</div></div>
+        <div class="wa-stat-box"><div class="num" id="st-delivered">—</div><div class="lbl">Delivered</div></div>
+        <div class="wa-stat-box"><div class="num" id="st-revenue">—</div><div class="lbl">Total Revenue</div></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="adm-toolbar" style="flex-wrap:wrap;gap:10px">
+        <input type="text" class="adm-search" id="search" placeholder="Search by name, phone, order ID..." oninput="filterOrders()"/>
+        <select class="adm-select" id="status-filter" onchange="filterOrders()">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Confirmed</option><option>Shipped</option>
+          <option>Delivered</option><option>Cancelled</option>
+        </select>
+      </div>
+
+      <!-- Orders List -->
+      <div class="adm-card">
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  let allOrders = [];
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    await loadOrders();
+  });
+
+  async function loadOrders() {
+    const data = await fetch('/api/admin/orders').then(r => r.json());
+    allOrders = (data.orders || []).filter(o => (o.orderSource || 'website') === 'whatsapp');
+    renderStats(allOrders);
+    renderTable(allOrders);
+  }
+
+  function renderStats(orders) {
+    document.getElementById('st-total').textContent = orders.length;
+    document.getElementById('st-pending').textContent = orders.filter(o => o.status === 'Pending').length;
+    document.getElementById('st-confirmed').textContent = orders.filter(o => o.status === 'Confirmed').length;
+    document.getElementById('st-delivered').textContent = orders.filter(o => o.status === 'Delivered').length;
+    const revenue = orders.filter(o => o.status !== 'Cancelled').reduce((s, o) => s + (o.total || 0), 0);
+    document.getElementById('st-revenue').textContent = '₹' + revenue.toLocaleString('en-IN');
+  }
+
+  function renderTable(orders) {
+    const tbody = document.getElementById('orders-tbody');
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:50px;color:#888"><i class="fab fa-whatsapp" style="font-size:2rem;color:#25d366;display:block;margin-bottom:10px"></i>No WhatsApp orders yet.<br><small style="font-size:0.8rem">Orders placed via WhatsApp button on your website will appear here.</small></td></tr>';
+      return;
+    }
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td>
+          <strong style="font-size:0.78rem;color:#2d6a4f">${o.id}</strong><br>
+          <span class="badge-wa"><i class="fab fa-whatsapp"></i> WhatsApp</span>
+        </td>
+        <td>
+          <div style="font-weight:600;font-size:0.88rem">${o.customerName || '—'}</div>
+          <div style="font-size:0.75rem;color:#666">${o.customerPhone || ''}</div>
+          ${o.address ? `<div style="font-size:0.73rem;color:#888">${o.address.substring(0,35)}${o.address.length>35?'...':''}</div>` : ''}
+        </td>
+        <td>
+          <ul style="margin:0;padding-left:14px;font-size:0.82rem">
+            ${(o.items || []).map(i => `<li>${i.name} ×${i.quantity}</li>`).join('')}
+          </ul>
+          <button class="expand-btn" onclick="toggleDetail('${o.id}')">
+            <i class="fa fa-info-circle"></i> Details
+          </button>
+        </td>
+        <td><strong style="color:#1b5e20">₹${o.total}</strong></td>
+        <td>
+          <select class="adm-select" style="padding:5px 8px;font-size:0.78rem" onchange="updateStatus('${o.id}', this.value)">
+            ${['Pending','Confirmed','Shipped','Delivered','Cancelled'].map(s => `<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <div style="margin-top:4px"><span class="status-badge s-${o.status}">${o.status}</span></div>
+        </td>
+        <td style="font-size:0.78rem;color:#888">${new Date(o.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}<br><span style="font-size:0.7rem">${new Date(o.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span></td>
+        <td>
+          <a href="https://wa.me/${(o.customerPhone||'').replace(/[^0-9]/g,'')}?text=${encodeURIComponent('Hi ' + (o.customerName||'') + '! 🌿 Your Shazz Natural\'s order ' + o.id + ' has been updated to: *' + o.status + '*. Thank you for ordering with us!')}"
+             target="_blank" class="adm-btn adm-btn-outline adm-btn-sm" title="Message customer on WhatsApp" style="background:#e7fdf0;border-color:#86efac;color:#15803d">
+            <i class="fab fa-whatsapp"></i> Message
+          </a>
+        </td>
+      </tr>
+      <tr id="detail-${o.id}" class="order-detail">
+        <td colspan="7" style="padding:0">
+          <div style="padding:14px 20px;background:#f8fdf8;border-top:1px solid #d1fae5">
+            <div class="detail-grid">
+              <div class="detail-item"><label>Order ID</label><span>${o.id}</span></div>
+              <div class="detail-item"><label>Payment</label><span>${o.paymentMethod || 'COD'}</span></div>
+              <div class="detail-item"><label>Phone</label><span>${o.customerPhone || '—'}</span></div>
+              <div class="detail-item"><label>Pincode</label><span>${o.pincode || '—'}</span></div>
+              <div class="detail-item" style="grid-column:1/-1"><label>Address</label><span>${o.address || '—'}</span></div>
+              ${o.notes ? `<div class="detail-item" style="grid-column:1/-1"><label>Notes</label><span style="color:#b45309">${o.notes}</span></div>` : ''}
+            </div>
+            <div style="margin-top:10px"><label style="font-weight:600;color:#555;font-size:0.78rem">Items</label>
+              <ul class="items-ul">${(o.items||[]).map(i=>`<li><strong>${i.name}</strong> × ${i.quantity} — ₹${i.price} each = ₹${i.price*i.quantity}</li>`).join('')}</ul>
+            </div>
+            <div style="margin-top:8px;font-weight:700;color:#1b5e20">Total: ₹${o.total}</div>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function toggleDetail(id) {
+    const row = document.getElementById('detail-' + id);
+    row.classList.toggle('order-detail');
+    row.classList.toggle('open');
+  }
+
+  function filterOrders() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const status = document.getElementById('status-filter').value;
+    const filtered = allOrders.filter(o => {
+      const matchQ = !q || o.id.toLowerCase().includes(q) || (o.customerName||'').toLowerCase().includes(q) || (o.customerPhone||'').includes(q);
+      const matchStatus = !status || o.status === status;
+      return matchQ && matchStatus;
+    });
+    renderTable(filtered);
+  }
+
+  async function updateStatus(id, status) {
+    const res = await fetch('/api/admin/orders/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status})});
+    const data = await res.json();
+    if (data.success) {
+      const o = allOrders.find(x => x.id === id);
+      if (o) o.status = status;
+      renderStats(allOrders);
+      showAlert('Order ' + id + ' updated to ' + status, 'success');
+    }
+  }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('page-alert');
+    el.innerHTML = `<div class="adm-alert adm-alert-${type === 'error' ? 'danger' : 'success'}">${msg}</div>`;
+    setTimeout(() => el.innerHTML = '', 4000);
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', {method:'POST'});
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>

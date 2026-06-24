@@ -78,6 +78,8 @@ const OrderSchema = new mongoose.Schema({
   total:         { type: Number, default: 0 },
   status:        { type: String, default: 'Pending' },
   paymentMethod: { type: String, default: 'COD' },
+  orderSource:   { type: String, default: 'website' }, // 'website' or 'whatsapp'
+  notes:         { type: String, default: '' },
 }, { timestamps: true });
 
 const SettingsSchema = new mongoose.Schema({
@@ -457,6 +459,28 @@ async function notifyAdminWhatsApp(message) {
   } catch(e) { console.warn('WhatsApp notify failed:', e.message); }
 }
 
+app.post('/api/orders/whatsapp', async (req, res) => {
+  try {
+    const { customerName, customerPhone, items } = req.body;
+    if (!customerName || !customerPhone) return res.status(400).json({ error: 'Name and phone required' });
+    if (!items || !items.length) return res.status(400).json({ error: 'No items in order' });
+    const total = items.reduce((s, i) => s + (Number(i.price) * Number(i.quantity)), 0);
+    const order = await Order.create({
+      orderId:       'ORD-WA-' + Date.now(),
+      customerId:    req.session.user?.id || 'guest',
+      customerName,
+      customerPhone,
+      items:         items.map(i => ({ name: i.name, price: Number(i.price), quantity: Number(i.quantity), weight: i.weight || '', productId: i.productId || '', image: i.image || '' })),
+      total,
+      orderSource:   'whatsapp',
+      status:        'Pending',
+      paymentMethod: 'COD',
+    });
+    req.session.cart = [];
+    res.json({ success: true, orderId: order.orderId });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/orders', async (req, res) => {
   try {
     const cart = req.session.cart || [];
@@ -503,6 +527,30 @@ app.put('/api/admin/orders/:id', requireAdmin, async (req, res) => {
     const order = await Order.findOneAndUpdate({ orderId: req.params.id }, { status: req.body.status }, { new: true }).lean();
     if (!order) return res.status(404).json({ error: 'Order not found' });
     res.json({ success: true, order: { ...order, id: order.orderId } });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/orders', requireAdmin, async (req, res) => {
+  try {
+    const { customerName, customerPhone, customerEmail, address, pincode, items, paymentMethod, notes } = req.body;
+    if (!customerName || !customerPhone) return res.status(400).json({ error: 'Customer name and phone are required' });
+    if (!items || !items.length) return res.status(400).json({ error: 'At least one item is required' });
+    const total = items.reduce((s, i) => s + (Number(i.price) * Number(i.quantity)), 0);
+    const order = await Order.create({
+      orderId:       'ORD-WA-' + Date.now(),
+      customerId:    'whatsapp',
+      customerName,
+      customerPhone,
+      customerEmail: customerEmail || '',
+      address:       address || '',
+      pincode:       pincode || '',
+      items:         items.map(i => ({ name: i.name, price: Number(i.price), quantity: Number(i.quantity), weight: i.weight || '', productId: '', image: '' })),
+      total,
+      paymentMethod: paymentMethod || 'COD',
+      orderSource:   'whatsapp',
+      notes:         notes || '',
+    });
+    res.json({ success: true, order: { ...order.toObject(), id: order.orderId } });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

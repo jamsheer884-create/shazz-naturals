@@ -119,6 +119,44 @@
   </div>
 </section>
 
+<!-- WhatsApp Quick Info Modal -->
+<div id="wa-quick-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:16px;padding:28px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;color:#1b5e20;display:flex;align-items:center;gap:8px">
+        <i class="fab fa-whatsapp" style="color:#25d366"></i> Quick Details
+      </h3>
+      <button onclick="document.getElementById('wa-quick-modal').classList.add('hidden')" style="background:none;border:none;font-size:1.3rem;cursor:pointer">✕</button>
+    </div>
+    <p style="font-size:0.82rem;color:#777;margin-bottom:16px">So we can track your order in our system.</p>
+    <div id="wa-quick-alert"></div>
+    <div class="form-group">
+      <label>Your Name *</label>
+      <input type="text" id="wa-quick-name" placeholder="Full name"/>
+    </div>
+    <div class="form-group">
+      <label>Phone Number *</label>
+      <div style="display:flex;gap:8px">
+        <select id="wa-quick-country" style="flex:0 0 118px;padding:10px 8px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem">
+          <option value="91" selected>🇮🇳 India +91</option>
+          <option value="971">🇦🇪 UAE +971</option>
+          <option value="966">🇸🇦 Saudi +966</option>
+          <option value="974">🇶🇦 Qatar +974</option>
+          <option value="965">🇰🇼 Kuwait +965</option>
+          <option value="968">🇴🇲 Oman +968</option>
+          <option value="973">🇧🇭 Bahrain +973</option>
+          <option value="1">🇺🇸 USA +1</option>
+          <option value="44">🇬🇧 UK +44</option>
+        </select>
+        <input type="tel" id="wa-quick-phone" placeholder="98765 43210" style="flex:1"/>
+      </div>
+    </div>
+    <button onclick="confirmWhatsAppOrder()" class="btn btn-whatsapp" style="width:100%;justify-content:center;padding:13px;font-size:1rem;margin-top:8px">
+      <i class="fab fa-whatsapp"></i> Continue to WhatsApp
+    </button>
+  </div>
+</div>
+
 <!-- Order Form Modal -->
 <div id="order-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
   <div style="background:white;border-radius:16px;padding:36px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto">
@@ -297,24 +335,60 @@
   }
 
   function orderViaWhatsApp(fromModal) {
+    if (fromModal) {
+      // Called from inside the COD modal — use those details directly
+      const name = document.getElementById('order-name').value.trim();
+      const phone = '+' + document.getElementById('order-phone-country').value + ' ' + document.getElementById('order-phone').value.trim();
+      const address = document.getElementById('order-address').value.trim();
+      _openWhatsAppWithDetails(name, phone, address);
+      document.getElementById('order-modal').classList.add('hidden');
+    } else {
+      // Show quick name/phone popup first
+      document.getElementById('wa-quick-name').value = '';
+      document.getElementById('wa-quick-phone').value = '';
+      document.getElementById('wa-quick-alert').innerHTML = '';
+      document.getElementById('wa-quick-modal').classList.remove('hidden');
+    }
+  }
+
+  async function confirmWhatsAppOrder() {
+    const name = document.getElementById('wa-quick-name').value.trim();
+    const phoneNum = document.getElementById('wa-quick-phone').value.trim();
+    const alertDiv = document.getElementById('wa-quick-alert');
+    if (!name || !phoneNum) {
+      alertDiv.innerHTML = '<div class="alert alert-error" style="margin-bottom:10px">Please enter your name and phone number.</div>';
+      return;
+    }
+    const phone = '+' + document.getElementById('wa-quick-country').value + ' ' + phoneNum;
+
+    // Save order to database
+    try {
+      await fetch('/api/orders/whatsapp', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ customerName: name, customerPhone: phone, items: cartData })
+      });
+    } catch(e) { /* non-blocking — still open WhatsApp */ }
+
+    document.getElementById('wa-quick-modal').classList.add('hidden');
+    _openWhatsAppWithDetails(name, phone, '');
+    cartData = [];
+    renderCart();
+    updateCartBadge();
+  }
+
+  function _openWhatsAppWithDetails(name, phone, address) {
     const settings = window._settings || {};
     const freeShipping = settings.freeShippingAbove || 500;
     const shippingCharge = settings.shippingCharge || 60;
     const subtotal = cartData.reduce((s, i) => s + i.price * i.quantity, 0);
     const shipping = subtotal >= freeShipping ? 0 : shippingCharge;
     const total = subtotal + shipping;
-
-    const name = fromModal ? document.getElementById('order-name').value : '';
-    const phone = fromModal && document.getElementById('order-phone').value.trim()
-      ? '+' + document.getElementById('order-phone-country').value + ' ' + document.getElementById('order-phone').value.trim()
-      : '';
-    const address = fromModal ? document.getElementById('order-address').value : '';
-
+    const waNumber = (settings.whatsapp || '917902302884').replace(/[^0-9]/g, '');
     const itemsList = cartData.map(i => `• *${i.name}* x${i.quantity} = ₹${i.price * i.quantity}`).join('\n');
-    const customerInfo = name ? `\n\n*Customer Details:*\nName: ${name}\nPhone: ${phone}\nAddress: ${address}` : '';
+    const customerInfo = name ? `\n\n*Customer Details:*\nName: ${name}\nPhone: ${phone}${address ? '\nAddress: ' + address : ''}` : '';
     const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ${shipping === 0 ? 'FREE' : '₹' + shipping}\n*Total: ₹${total}*\n\nPlease confirm my order. Thank you! 🙏`;
-    window.open('https://wa.me/917902302884?text=' + encodeURIComponent(msg), '_blank');
-    if (fromModal) document.getElementById('order-modal').classList.add('hidden');
+    window.open('https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg), '_blank');
   }
 
   function placeOrder() {

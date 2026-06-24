@@ -5,6 +5,27 @@
   <title>Orders – Shazz Natural's Admin</title>
   <link rel="stylesheet" href="/css/admin.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:#fff; border-radius:12px; padding:28px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.18); }
+    .modal-box h2 { margin:0 0 18px; font-size:1.15rem; color:#2d6a4f; display:flex; align-items:center; gap:8px; }
+    .modal-body label { display:block; font-size:0.83rem; font-weight:600; color:#444; margin:10px 0 3px; }
+    .modal-body input, .modal-body select, .modal-body textarea { width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #ddd; border-radius:6px; font-size:0.88rem; }
+    .modal-body textarea { resize:vertical; min-height:60px; }
+    .modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+    .items-list { border:1px solid #eee; border-radius:8px; padding:10px; margin-top:6px; }
+    .item-row { display:grid; grid-template-columns:1fr 90px 70px 36px; gap:6px; align-items:center; margin-bottom:8px; }
+    .item-row input { padding:6px 8px; }
+    .remove-item-btn { background:#fee2e2; border:none; border-radius:6px; color:#dc2626; width:32px; height:32px; cursor:pointer; font-size:0.9rem; }
+    .add-item-btn { background:#f0fdf4; border:1px dashed #86efac; border-radius:6px; color:#16a34a; padding:7px 14px; cursor:pointer; font-size:0.83rem; width:100%; margin-top:4px; }
+    .badge-whatsapp { background:#dcfce7; color:#16a34a; }
+    .badge-website { background:#e0f2fe; color:#0369a1; }
+    .source-filter-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .add-wa-btn { background:#25d366; color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:0.88rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:7px; white-space:nowrap; }
+    .add-wa-btn:hover { background:#1db954; }
+    .items-header { display:grid; grid-template-columns:1fr 90px 70px 36px; gap:6px; font-size:0.75rem; color:#888; font-weight:600; padding:0 0 4px; }
+  </style>
 </head>
 <body>
 <div class="adm-layout">
@@ -15,6 +36,7 @@
       <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
       <a href="/admin/categories.html"><span class="nav-icon"><i class="fa fa-th-large"></i></span> Categories</a>
       <a href="/admin/orders.html" class="active"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/whatsapp-orders.html"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WhatsApp Orders</a>
       <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
       <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Settings</a>
     </nav>
@@ -29,25 +51,33 @@
     </div>
     <div class="adm-content">
       <div id="page-alert"></div>
-      <div class="adm-toolbar">
+      <div class="adm-toolbar source-filter-row">
         <input type="text" class="adm-search" id="search" placeholder="Search by order ID, name, phone..." oninput="filterOrders()"/>
         <select class="adm-select" id="status-filter" onchange="filterOrders()">
           <option value="">All Statuses</option>
           <option>Pending</option><option>Confirmed</option><option>Shipped</option>
           <option>Delivered</option><option>Cancelled</option>
         </select>
+        <select class="adm-select" id="source-filter" onchange="filterOrders()">
+          <option value="">All Sources</option>
+          <option value="website">Website</option>
+          <option value="whatsapp">WhatsApp</option>
+        </select>
+        <button class="add-wa-btn" onclick="openWAModal()">
+          <i class="fab fa-whatsapp"></i> Add WhatsApp Order
+        </button>
       </div>
       <div class="adm-card">
         <div class="adm-table-wrap">
           <table class="adm-table">
             <thead>
               <tr>
-                <th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th>
+                <th>Order ID</th><th>Source</th><th>Customer</th><th>Items</th><th>Total</th>
                 <th>Payment</th><th>Status</th><th>Date</th><th>Action</th>
               </tr>
             </thead>
             <tbody id="orders-tbody">
-              <tr><td colspan="8" style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>
             </tbody>
           </table>
         </div>
@@ -55,29 +85,88 @@
     </div>
   </main>
 </div>
+
+<!-- Add WhatsApp Order Modal -->
+<div class="modal-overlay" id="wa-modal">
+  <div class="modal-box">
+    <h2><i class="fab fa-whatsapp" style="color:#25d366"></i> Add WhatsApp Order</h2>
+    <div class="modal-body">
+      <label>Customer Name *</label>
+      <input type="text" id="wa-name" placeholder="e.g. Fatima Zahra"/>
+      <label>Phone Number *</label>
+      <input type="text" id="wa-phone" placeholder="e.g. 919876543210"/>
+      <label>Email</label>
+      <input type="email" id="wa-email" placeholder="optional"/>
+      <label>Delivery Address</label>
+      <textarea id="wa-address" placeholder="House no, Street, City..."></textarea>
+      <label>Pincode</label>
+      <input type="text" id="wa-pincode" placeholder="e.g. 670001"/>
+      <label>Payment Method</label>
+      <select id="wa-payment">
+        <option value="COD">Cash on Delivery (COD)</option>
+        <option value="UPI">UPI</option>
+        <option value="Bank">Bank Transfer</option>
+      </select>
+      <label>Notes</label>
+      <input type="text" id="wa-notes" placeholder="Any special instructions or WhatsApp message notes"/>
+
+      <label style="margin-top:14px">Items Ordered *</label>
+      <div class="items-list">
+        <div class="items-header">
+          <span>Product Name</span><span>Price (₹)</span><span>Qty</span><span></span>
+        </div>
+        <div id="wa-items"></div>
+        <button class="add-item-btn" onclick="addItemRow()"><i class="fa fa-plus"></i> Add Item</button>
+      </div>
+      <div style="margin-top:10px;font-size:0.88rem;color:#555">
+        Order Total: <strong id="wa-total-display">₹0</strong>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="adm-btn adm-btn-outline" onclick="closeWAModal()">Cancel</button>
+      <button class="adm-btn adm-btn-primary" onclick="submitWAOrder()">
+        <i class="fa fa-check"></i> Save Order
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   let allOrders = [];
+
   document.addEventListener('DOMContentLoaded', async () => {
     const me = await fetch('/api/auth/me').then(r => r.json());
     if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
-    const data = await fetch('/api/admin/orders').then(r => r.json());
-    allOrders = (data.orders || []).reverse();
-    renderTable(allOrders);
+    await loadOrders();
   });
+
+  async function loadOrders() {
+    const data = await fetch('/api/admin/orders').then(r => r.json());
+    allOrders = (data.orders || []);
+    renderTable(allOrders);
+  }
 
   function renderTable(orders) {
     const tbody = document.getElementById('orders-tbody');
     if (!orders.length) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#888">No orders found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#888">No orders found.</td></tr>';
       return;
     }
-    tbody.innerHTML = orders.map(o => `
+    tbody.innerHTML = orders.map(o => {
+      const isWA = (o.orderSource === 'whatsapp');
+      return `
       <tr>
         <td><strong style="font-size:0.8rem">${o.id}</strong></td>
         <td>
+          ${isWA
+            ? '<span class="adm-badge badge-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</span>'
+            : '<span class="adm-badge badge-website"><i class="fa fa-globe"></i> Website</span>'}
+        </td>
+        <td>
           <div style="font-weight:600;font-size:0.88rem">${o.customerName || '—'}</div>
           <div style="font-size:0.75rem;color:#888">${o.customerPhone || ''}</div>
-          <div style="font-size:0.75rem;color:#888">${o.address ? o.address.substring(0,30) + '...' : ''}</div>
+          <div style="font-size:0.75rem;color:#888">${o.address ? o.address.substring(0,30) + (o.address.length > 30 ? '...' : '') : ''}</div>
+          ${o.notes ? `<div style="font-size:0.73rem;color:#b45309;font-style:italic">📝 ${o.notes}</div>` : ''}
         </td>
         <td>
           <div class="order-items-list">
@@ -93,21 +182,24 @@
         </td>
         <td style="font-size:0.78rem;color:#888">${new Date(o.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</td>
         <td>
-          <a href="https://wa.me/${o.customerPhone ? o.customerPhone.replace(/[^0-9]/g,'') : '917902302884'}?text=${encodeURIComponent('Hi ' + (o.customerName||'') + '! Your order ' + o.id + ' status has been updated.')}"
-             target="_blank" class="adm-btn adm-btn-outline adm-btn-sm" title="Notify customer">
+          <a href="https://wa.me/${(o.customerPhone || '').replace(/[^0-9]/g,'')}?text=${encodeURIComponent('Hi ' + (o.customerName||'') + '! Your order ' + o.id + ' status has been updated to: ' + o.status + '. Thank you for shopping with Shazz Natural\'s!')}"
+             target="_blank" class="adm-btn adm-btn-outline adm-btn-sm" title="Message customer on WhatsApp">
             <i class="fab fa-whatsapp"></i>
           </a>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   function filterOrders() {
     const q = document.getElementById('search').value.toLowerCase();
     const status = document.getElementById('status-filter').value;
+    const source = document.getElementById('source-filter').value;
     const filtered = allOrders.filter(o => {
       const matchQ = !q || o.id.toLowerCase().includes(q) || (o.customerName||'').toLowerCase().includes(q) || (o.customerPhone||'').includes(q);
       const matchStatus = !status || o.status === status;
-      return matchQ && matchStatus;
+      const matchSource = !source || (o.orderSource || 'website') === source;
+      return matchQ && matchStatus && matchSource;
     });
     renderTable(filtered);
   }
@@ -118,16 +210,115 @@
     if (data.success) {
       const o = allOrders.find(x => x.id === id);
       if (o) o.status = status;
-      const el = document.getElementById('page-alert');
-      el.innerHTML = '<div class="adm-alert adm-alert-success">Order status updated to ' + status + '</div>';
-      setTimeout(() => el.innerHTML = '', 3000);
+      showAlert('Order status updated to ' + status, 'success');
     }
+  }
+
+  // ── WhatsApp Order Modal ──────────────────────────────────────────────────
+
+  function openWAModal() {
+    document.getElementById('wa-name').value = '';
+    document.getElementById('wa-phone').value = '';
+    document.getElementById('wa-email').value = '';
+    document.getElementById('wa-address').value = '';
+    document.getElementById('wa-pincode').value = '';
+    document.getElementById('wa-payment').value = 'COD';
+    document.getElementById('wa-notes').value = '';
+    document.getElementById('wa-items').innerHTML = '';
+    document.getElementById('wa-total-display').textContent = '₹0';
+    addItemRow();
+    document.getElementById('wa-modal').classList.add('open');
+  }
+
+  function closeWAModal() {
+    document.getElementById('wa-modal').classList.remove('open');
+  }
+
+  function addItemRow() {
+    const container = document.getElementById('wa-items');
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Product name" oninput="recalcTotal()"/>
+      <input type="number" placeholder="Price" min="0" oninput="recalcTotal()"/>
+      <input type="number" placeholder="Qty" min="1" value="1" oninput="recalcTotal()"/>
+      <button class="remove-item-btn" onclick="removeItemRow(this)" title="Remove"><i class="fa fa-times"></i></button>
+    `;
+    container.appendChild(row);
+    recalcTotal();
+  }
+
+  function removeItemRow(btn) {
+    btn.closest('.item-row').remove();
+    recalcTotal();
+  }
+
+  function recalcTotal() {
+    const rows = document.querySelectorAll('#wa-items .item-row');
+    let total = 0;
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const price = parseFloat(inputs[1].value) || 0;
+      const qty = parseInt(inputs[2].value) || 0;
+      total += price * qty;
+    });
+    document.getElementById('wa-total-display').textContent = '₹' + total;
+  }
+
+  function getItems() {
+    const rows = document.querySelectorAll('#wa-items .item-row');
+    return Array.from(rows).map(row => {
+      const inputs = row.querySelectorAll('input');
+      return { name: inputs[0].value.trim(), price: parseFloat(inputs[1].value) || 0, quantity: parseInt(inputs[2].value) || 1 };
+    }).filter(i => i.name);
+  }
+
+  async function submitWAOrder() {
+    const name = document.getElementById('wa-name').value.trim();
+    const phone = document.getElementById('wa-phone').value.trim();
+    if (!name || !phone) { showAlert('Customer name and phone are required', 'error'); return; }
+    const items = getItems();
+    if (!items.length) { showAlert('Add at least one item', 'error'); return; }
+
+    const payload = {
+      customerName:  name,
+      customerPhone: phone,
+      customerEmail: document.getElementById('wa-email').value.trim(),
+      address:       document.getElementById('wa-address').value.trim(),
+      pincode:       document.getElementById('wa-pincode').value.trim(),
+      paymentMethod: document.getElementById('wa-payment').value,
+      notes:         document.getElementById('wa-notes').value.trim(),
+      items,
+    };
+
+    const res = await fetch('/api/admin/orders', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.success) {
+      closeWAModal();
+      showAlert('WhatsApp order saved successfully!', 'success');
+      await loadOrders();
+    } else {
+      showAlert(data.error || 'Failed to save order', 'error');
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('page-alert');
+    el.innerHTML = `<div class="adm-alert adm-alert-${type === 'error' ? 'danger' : 'success'}">${msg}</div>`;
+    setTimeout(() => el.innerHTML = '', 4000);
   }
 
   async function doLogout() {
     await fetch('/api/auth/logout', {method:'POST'});
     window.location.href = '/admin/login.html';
   }
+
+  // Close modal on overlay click
+  document.getElementById('wa-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeWAModal();
+  });
 </script>
 </body>
 </html>
