@@ -384,6 +384,13 @@ app.post('/api/settings/about-image', requireAdmin, upload.single('aboutImage'),
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+app.post('/api/admin/upload', requireAdmin, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+    res.json({ success: true, url: getImageUrl(req.file) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/settings/slide-image/:index', requireAdmin, upload.single('slideImage'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
