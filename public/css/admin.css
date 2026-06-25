@@ -206,7 +206,7 @@ a { text-decoration: none; color: inherit; }
 }
 .img-upload-area:hover { border-color: var(--adm-primary); background: #f0f7f0; }
 .img-upload-area input[type="file"] {
-  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2;
 }
 .img-upload-icon { font-size: 2.5rem; margin-bottom: 8px; opacity: 0.5; }
 .img-upload-area p { font-size: 0.82rem; color: var(--adm-light); }
