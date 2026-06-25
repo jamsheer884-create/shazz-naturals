@@ -404,15 +404,26 @@
 
   function _openWhatsAppWithDetails(name, phone, address, pincode) {
     const settings = window._settings || {};
-    const freeShipping = settings.freeShippingAbove || 500;
-    const shippingCharge = settings.shippingCharge || 60;
     const subtotal = cartData.reduce((s, i) => s + i.price * i.quantity, 0);
-    const shipping = subtotal >= freeShipping ? 0 : shippingCharge;
+    const totalWeightG = cartData.reduce((s, i) => {
+      const w = parseFloat((i.weight || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+      return s + (w + 10) * i.quantity;
+    }, 0);
+    function getDeliveryCharge(grams) {
+      if (grams <= 0)    return 50;
+      if (grams <= 500)  return 50;
+      if (grams <= 1000) return 70;
+      if (grams <= 1500) return 85;
+      if (grams <= 2000) return 120;
+      if (grams <= 3000) return 180;
+      return 225;
+    }
+    const shipping = getDeliveryCharge(totalWeightG);
     const total = subtotal + shipping;
     const waNumber = (settings.whatsapp || '917902302884').replace(/[^0-9]/g, '');
     const itemsList = cartData.map(i => `• *${i.name}* x${i.quantity} = ₹${i.price * i.quantity}`).join('\n');
     const customerInfo = name ? `\n\n*Customer Details:*\n👤 Name: ${name}\n📱 Phone: ${phone}${address ? '\n🏠 Address: ' + address : ''}${pincode ? '\n📍 PIN: ' + pincode : ''}` : '';
-    const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ${shipping === 0 ? 'FREE' : '₹' + shipping}\n*Total: ₹${total}*\n\nPlease confirm my order. Thank you! 🙏`;
+    const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ₹${shipping}\n*Total: ₹${total}*\n\nPlease confirm my order. Thank you! 🙏`;
     window.open('https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg), '_blank');
   }
 

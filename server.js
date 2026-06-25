@@ -461,16 +461,26 @@ async function notifyAdminWhatsApp(message) {
   } catch(e) { console.warn('WhatsApp notify failed:', e.message); }
 }
 
+function calcShippingByWeight(items) {
+  const totalWeightG = items.reduce((s, i) => {
+    const w = parseFloat((i.weight || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+    return s + (w + 10) * Number(i.quantity);
+  }, 0);
+  if (totalWeightG <= 500)  return 50;
+  if (totalWeightG <= 1000) return 70;
+  if (totalWeightG <= 1500) return 85;
+  if (totalWeightG <= 2000) return 120;
+  if (totalWeightG <= 3000) return 180;
+  return 225;
+}
+
 app.post('/api/orders/whatsapp', async (req, res) => {
   try {
     const { customerName, customerPhone, address, pincode, items } = req.body;
     if (!customerName || !customerPhone) return res.status(400).json({ error: 'Name and phone required' });
     if (!items || !items.length) return res.status(400).json({ error: 'No items in order' });
-    const s = await Settings.findOne({ key: 'main' }).lean();
-    const freeShippingAbove = s?.freeShippingAbove ?? 500;
-    const shippingRate = s?.shippingCharge ?? 60;
     const subtotal = items.reduce((acc, i) => acc + (Number(i.price) * Number(i.quantity)), 0);
-    const shippingCharge = subtotal >= freeShippingAbove ? 0 : shippingRate;
+    const shippingCharge = calcShippingByWeight(items);
     const total = subtotal + shippingCharge;
     const order = await Order.create({
       orderId:       'ORD-WA-' + Date.now(),
@@ -491,7 +501,7 @@ app.post('/api/orders/whatsapp', async (req, res) => {
     res.json({ success: true, orderId: order.orderId });
 
     const itemsList = order.items.map(i => `- ${i.name} x${i.quantity}`).join('\n');
-    const shippingLine = order.shippingCharge === 0 ? 'Shipping: FREE' : `Shipping: ₹${order.shippingCharge}`;
+    const shippingLine = `Shipping: ₹${order.shippingCharge}`;
     notifyAdminWhatsApp(
       `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
     );
@@ -502,11 +512,8 @@ app.post('/api/orders', async (req, res) => {
   try {
     const cart = req.session.cart || [];
     if (!cart.length) return res.status(400).json({ error: 'Cart is empty' });
-    const s = await Settings.findOne({ key: 'main' }).lean();
-    const freeShippingAbove = s?.freeShippingAbove ?? 500;
-    const shippingRate = s?.shippingCharge ?? 60;
     const subtotal = cart.reduce((acc, i) => acc + i.price * i.quantity, 0);
-    const shippingCharge = subtotal >= freeShippingAbove ? 0 : shippingRate;
+    const shippingCharge = calcShippingByWeight(cart);
     const total = subtotal + shippingCharge;
     const order = await Order.create({
       orderId:       'ORD-' + Date.now(),
@@ -526,7 +533,7 @@ app.post('/api/orders', async (req, res) => {
     res.json({ success: true, order: { ...order.toObject(), id: order.orderId } });
 
     const itemsList = order.items.map(i => `- ${i.name} x${i.quantity}`).join('\n');
-    const shippingLine = order.shippingCharge === 0 ? 'Shipping: FREE' : `Shipping: ₹${order.shippingCharge}`;
+    const shippingLine = `Shipping: ₹${order.shippingCharge}`;
     notifyAdminWhatsApp(
       `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
     );
