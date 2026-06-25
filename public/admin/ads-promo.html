@@ -132,9 +132,13 @@
             </div>
             <div class="adm-card-body">
               <p style="font-size:0.82rem;color:#777;margin-bottom:8px">Click each Send button — or use <strong>Send All</strong> to open one by one automatically when you return to this tab.</p>
-              <button onclick="sendAllWhatsApp()" id="send-all-wa-btn" class="send-btn send-wa-btn" style="margin-bottom:12px;font-size:0.85rem;padding:9px 16px">
+              <button onclick="sendAllWhatsApp()" id="send-all-wa-btn" class="send-btn send-wa-btn" style="margin-bottom:8px;font-size:0.85rem;padding:9px 16px">
                 <i class="fab fa-whatsapp"></i> Send All WhatsApp
               </button>
+              <button onclick="sendNextWa()" id="next-wa-btn" style="display:none;margin-bottom:12px;background:#e65100;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:0.95rem;font-weight:700;cursor:pointer;animation:pulse 0.8s infinite alternate">
+                <i class="fab fa-whatsapp"></i> ▶ Open Next Customer
+              </button>
+              <style>@keyframes pulse{from{opacity:1}to{opacity:0.6}}</style>
               <div class="wa-list" id="wa-list"></div>
             </div>
           </div>
@@ -315,19 +319,32 @@ html += `<div class="result-box result-success" style="margin-top:10px"><i class
     if (waSendIndex >= waQueue.length) {
       sendAllActive = false;
       document.getElementById('send-all-wa-btn').innerHTML = '<i class="fab fa-whatsapp"></i> All Sent ✔';
+      document.getElementById('next-wa-btn').style.display = 'none';
       return;
     }
     const c = waQueue[waSendIndex];
     window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}`, '_blank');
-    // When user returns: tick the one just sent, then open next
     window.addEventListener('focus', onTabFocus);
   }
 
   function onTabFocus() {
     window.removeEventListener('focus', onTabFocus);
-    markSent(waSendIndex);  // tick appears when you come back = you sent it
+    // Tick the one just sent
+    markSent(waSendIndex);
     waSendIndex++;
-    setTimeout(openNextWa, 600);
+    if (waSendIndex < waQueue.length) {
+      // Show flashing button — user must click to open next (browser allows it)
+      document.getElementById('next-wa-btn').style.display = 'inline-block';
+    } else {
+      sendAllActive = false;
+      document.getElementById('send-all-wa-btn').innerHTML = '<i class="fab fa-whatsapp"></i> All Sent ✔';
+      document.getElementById('next-wa-btn').style.display = 'none';
+    }
+  }
+
+  function sendNextWa() {
+    document.getElementById('next-wa-btn').style.display = 'none';
+    openNextWa();
   }
 
   async function doLogout() {
