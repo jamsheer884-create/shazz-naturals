@@ -73,7 +73,7 @@
         <td>${c.phone || '—'}</td>
         <td style="font-size:0.8rem;color:#888">${new Date(c.createdAt).toLocaleDateString('en-IN')}</td>
         <td>
-          ${c.phone ? `<a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}" target="_blank" class="adm-btn adm-btn-outline adm-btn-sm"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : '—'}
+          ${c.phone ? `<a href="https://wa.me/${(n => n.length === 10 ? '91' + n : n)(c.phone.replace(/[^0-9]/g,''))}" target="_blank" class="adm-btn adm-btn-outline adm-btn-sm"><i class="fab fa-whatsapp"></i> WhatsApp</a>` : '—'}
         </td>
       </tr>`).join('');
   }

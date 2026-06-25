@@ -116,7 +116,7 @@
         <td><strong style="color:#1b5e20">₹${(c.totalSpent || 0).toLocaleString('en-IN')}</strong></td>
         <td style="font-size:0.78rem;color:#888">${new Date(c.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</td>
         <td style="display:flex;gap:6px;flex-wrap:wrap">
-          <a href="https://wa.me/${(c.phone||'').replace(/[^0-9]/g,'')}" target="_blank" class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none">
+          <a href="https://wa.me/${(n => n.length === 10 ? '91' + n : n)((c.phone||'').replace(/[^0-9]/g,''))}" target="_blank" class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none">
             <i class="fab fa-whatsapp"></i> Chat
           </a>
           <button onclick="deleteCustomer('${c._id}')" class="adm-btn adm-btn-sm adm-btn-danger" title="Remove">
