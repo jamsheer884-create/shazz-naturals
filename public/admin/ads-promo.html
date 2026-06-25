@@ -279,9 +279,13 @@ html += `<div class="result-box result-success" style="margin-top:10px"><i class
     const list = document.getElementById('wa-list');
     list.innerHTML = waQueue.map((c, i) => `
       <div class="wa-item" id="wa-item-${i}">
-        <span><strong>${c.name || 'Customer'}</strong> &nbsp; <span style="color:#888;font-size:0.8rem">+${c.phone}</span></span>
+        <span>
+          <span id="wa-tick-${i}" style="display:none;color:#1976d2;font-weight:700;margin-right:6px">✔</span>
+          <strong>${c.name || 'Customer'}</strong> &nbsp; <span style="color:#888;font-size:0.8rem">+${c.phone}</span>
+        </span>
         <a href="https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}" target="_blank"
            onclick="markSent(${i})"
+           id="wa-btn-${i}"
            class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none;white-space:nowrap">
           <i class="fab fa-whatsapp"></i> Send
         </a>
@@ -290,21 +294,44 @@ html += `<div class="result-box result-success" style="margin-top:10px"><i class
 
   function markSent(i) {
     const item = document.getElementById('wa-item-' + i);
-    if (item) item.style.background = '#f0fff4';
+    const tick = document.getElementById('wa-tick-' + i);
+    const btn  = document.getElementById('wa-btn-' + i);
+    if (item) item.style.background = '#e3f2fd';
+    if (tick) tick.style.display = 'inline';
+    if (btn)  { btn.style.background = '#1976d2'; btn.innerHTML = '<i class="fa fa-check"></i> Sent'; }
   }
 
   let waSendIndex = 0;
+  let sendAllActive = false;
+
   function sendAllWhatsApp() {
-    if (waSendIndex >= waQueue.length) { waSendIndex = 0; }
-    function sendNext() {
-      if (waSendIndex >= waQueue.length) return;
-      const c = waQueue[waSendIndex];
-      window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}`, '_blank');
-      markSent(waSendIndex);
+    waSendIndex = 0;
+    sendAllActive = true;
+    openNextWa();
+  }
+
+  function openNextWa() {
+    if (!sendAllActive) return;
+    // Skip already-sent
+    while (waSendIndex < waQueue.length && document.getElementById('wa-item-' + waSendIndex)?.style.background === 'rgb(227, 242, 253)') {
       waSendIndex++;
-      if (waSendIndex < waQueue.length) setTimeout(sendNext, 1500);
     }
-    sendNext();
+    if (waSendIndex >= waQueue.length) {
+      sendAllActive = false;
+      document.getElementById('send-all-wa-btn').innerHTML = '<i class="fab fa-whatsapp"></i> All Sent ✔';
+      return;
+    }
+    const c = waQueue[waSendIndex];
+    markSent(waSendIndex);
+    window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}`, '_blank');
+    waSendIndex++;
+    // When user returns to this tab, open the next one
+    window.addEventListener('focus', onTabFocus);
+  }
+
+  function onTabFocus() {
+    window.removeEventListener('focus', onTabFocus);
+    setTimeout(openNextWa, 800);
   }
 
   async function doLogout() {
