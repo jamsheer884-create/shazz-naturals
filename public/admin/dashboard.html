@@ -66,25 +66,15 @@
             <div class="adm-stat-label">Total Products Sold</div>
           </div>
         </div>
-        <div class="adm-stat-card" onclick="location.href='/admin/customers.html'" style="cursor:pointer">
-          <div class="adm-stat-icon icon-gold"><i class="fa fa-user-check" style="color:#c8860a"></i></div>
-          <div>
-            <div class="adm-stat-num" id="stat-reg-customers">—</div>
-            <div class="adm-stat-label">Registered Customers</div>
-          </div>
-        </div>
-        <div class="adm-stat-card" onclick="location.href='/admin/wa-customers.html'" style="cursor:pointer">
-          <div class="adm-stat-icon" style="background:#e8f5e9"><i class="fab fa-whatsapp" style="color:#25d366"></i></div>
-          <div>
-            <div class="adm-stat-num" id="stat-wa-customers">—</div>
-            <div class="adm-stat-label">WhatsApp Customers</div>
-          </div>
-        </div>
         <div class="adm-stat-card">
           <div class="adm-stat-icon icon-gold"><i class="fa fa-users" style="color:#c8860a"></i></div>
           <div>
             <div class="adm-stat-num" id="stat-customers">—</div>
             <div class="adm-stat-label">Total Customers</div>
+            <div style="display:flex;gap:12px;margin-top:6px">
+              <a href="/admin/customers.html" style="font-size:0.75rem;color:#c8860a;text-decoration:none"><i class="fa fa-user-check"></i> Registered: <strong id="stat-reg-customers">—</strong></a>
+              <a href="/admin/wa-customers.html" style="font-size:0.75rem;color:#25d366;text-decoration:none"><i class="fab fa-whatsapp"></i> WhatsApp: <strong id="stat-wa-customers">—</strong></a>
+            </div>
           </div>
         </div>
         <div class="adm-stat-card">
