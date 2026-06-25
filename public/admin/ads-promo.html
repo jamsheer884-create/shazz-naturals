@@ -312,26 +312,22 @@ html += `<div class="result-box result-success" style="margin-top:10px"><i class
 
   function openNextWa() {
     if (!sendAllActive) return;
-    // Skip already-sent
-    while (waSendIndex < waQueue.length && document.getElementById('wa-item-' + waSendIndex)?.style.background === 'rgb(227, 242, 253)') {
-      waSendIndex++;
-    }
     if (waSendIndex >= waQueue.length) {
       sendAllActive = false;
       document.getElementById('send-all-wa-btn').innerHTML = '<i class="fab fa-whatsapp"></i> All Sent ✔';
       return;
     }
     const c = waQueue[waSendIndex];
-    markSent(waSendIndex);
     window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}`, '_blank');
-    waSendIndex++;
-    // When user returns to this tab, open the next one
+    // When user returns: tick the one just sent, then open next
     window.addEventListener('focus', onTabFocus);
   }
 
   function onTabFocus() {
     window.removeEventListener('focus', onTabFocus);
-    setTimeout(openNextWa, 800);
+    markSent(waSendIndex);  // tick appears when you come back = you sent it
+    waSendIndex++;
+    setTimeout(openNextWa, 600);
   }
 
   async function doLogout() {
