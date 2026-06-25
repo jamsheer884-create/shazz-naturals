@@ -174,13 +174,14 @@
 </div>
 
 <!-- Order Form Modal -->
-<div id="order-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px">
-  <div style="background:white;border-radius:16px;padding:36px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-      <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1b5e20">Delivery Details</h3>
+<div id="order-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;display:flex;align-items:center;justify-content:center;padding:12px">
+  <div style="background:white;border-radius:16px;padding:20px 24px;max-width:520px;width:100%;max-height:96vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#1b5e20">Delivery Details</h3>
       <button onclick="document.getElementById('order-modal').classList.add('hidden')" style="background:none;border:none;font-size:1.3rem;cursor:pointer">✕</button>
     </div>
     <div id="order-alert"></div>
+    <style>#order-modal .form-group{margin-bottom:10px}#order-modal .form-group input,#order-modal .form-group select,#order-modal .form-group textarea{padding:9px 12px;font-size:0.88rem}#order-modal .form-group label{margin-bottom:3px}</style>
     <div class="form-group">
       <label>Full Name *</label>
       <input type="text" id="order-name" placeholder="Your full name">
