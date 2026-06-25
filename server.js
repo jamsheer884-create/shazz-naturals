@@ -651,15 +651,17 @@ app.delete('/api/admin/wa-customers/:id', requireAdmin, async (req, res) => {
 
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
-    const [products, customers, orders] = await Promise.all([
+    const [products, registeredCustomers, waCustomers, orders] = await Promise.all([
       Product.countDocuments(),
       User.countDocuments(),
+      WaCustomer.countDocuments(),
       Order.find().lean()
     ]);
     const activeOrders = orders.filter(o => o.status !== 'Cancelled');
     const revenue = activeOrders.reduce((s, o) => s + (o.total || 0), 0);
     const pendingOrders = orders.filter(o => o.status === 'Pending').length;
-    res.json({ products, customers, orders: activeOrders.length, pendingOrders, revenue, recentOrders: orders.slice(0, 5).map(o => ({ ...o, id: o.orderId })) });
+    const customers = registeredCustomers + waCustomers;
+    res.json({ products, customers, registeredCustomers, waCustomers, orders: activeOrders.length, pendingOrders, revenue, recentOrders: orders.slice(0, 5).map(o => ({ ...o, id: o.orderId })) });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

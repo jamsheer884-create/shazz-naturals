@@ -66,11 +66,25 @@
             <div class="adm-stat-label">Total Products Sold</div>
           </div>
         </div>
+        <div class="adm-stat-card" onclick="location.href='/admin/customers.html'" style="cursor:pointer">
+          <div class="adm-stat-icon icon-gold"><i class="fa fa-user-check" style="color:#c8860a"></i></div>
+          <div>
+            <div class="adm-stat-num" id="stat-reg-customers">—</div>
+            <div class="adm-stat-label">Registered Customers</div>
+          </div>
+        </div>
+        <div class="adm-stat-card" onclick="location.href='/admin/wa-customers.html'" style="cursor:pointer">
+          <div class="adm-stat-icon" style="background:#e8f5e9"><i class="fab fa-whatsapp" style="color:#25d366"></i></div>
+          <div>
+            <div class="adm-stat-num" id="stat-wa-customers">—</div>
+            <div class="adm-stat-label">WhatsApp Customers</div>
+          </div>
+        </div>
         <div class="adm-stat-card">
           <div class="adm-stat-icon icon-gold"><i class="fa fa-users" style="color:#c8860a"></i></div>
           <div>
             <div class="adm-stat-num" id="stat-customers">—</div>
-            <div class="adm-stat-label">Customers</div>
+            <div class="adm-stat-label">Total Customers</div>
           </div>
         </div>
         <div class="adm-stat-card">
@@ -181,6 +195,8 @@
     const stats = await fetch('/api/admin/stats').then(r => r.json());
     document.getElementById('stat-products').textContent = stats.products || 0;
     document.getElementById('stat-orders').textContent = stats.orders || 0;
+    document.getElementById('stat-reg-customers').textContent = stats.registeredCustomers || 0;
+    document.getElementById('stat-wa-customers').textContent = stats.waCustomers || 0;
     document.getElementById('stat-customers').textContent = stats.customers || 0;
     document.getElementById('stat-revenue').textContent = '₹' + (stats.revenue || 0);
     document.getElementById('stat-pending').textContent = stats.pendingOrders || 0;
