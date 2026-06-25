@@ -132,9 +132,6 @@
             </div>
             <div class="adm-card-body">
               <p style="font-size:0.82rem;color:#777;margin-bottom:8px">Click each button to open WhatsApp and send the message. Or use <strong>Send All</strong> to open them one by one automatically.</p>
-              <div id="img-attach-note" style="display:none;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:0.82rem;color:#7b5800">
-                <i class="fa fa-image"></i> <strong>Tip:</strong> WhatsApp can't auto-attach images. When each chat opens, tap the 📎 attachment icon and attach your promo image manually before sending.
-              </div>
               <button onclick="sendAllWhatsApp()" id="send-all-wa-btn" class="send-btn send-wa-btn" style="margin-bottom:12px;font-size:0.85rem;padding:9px 16px">
                 <i class="fab fa-whatsapp"></i> Send All WhatsApp
               </button>
@@ -246,7 +243,7 @@
       }).then(r => r.json());
 
       let html = '';
-      waMessage = '🌿*SHAZZ NATURAL\'S*---PROMO NOTIFICATION\n\n' + (subject ? '*' + subject + '*\n\n' : '') + message;
+      waMessage = '🌿*SHAZZ NATURAL\'S*---PROMO NOTIFICATION\n\n' + (subject ? '*' + subject + '*\n\n' : '') + message + (uploadedImageUrl ? '\n\n👉 View Offer Image:\n' + uploadedImageUrl : '');
 
       if (sendEmail) {
         if (res.emailError) {
@@ -264,8 +261,7 @@
       if (waQueue.length > 0) {
         renderWaQueue();
         document.getElementById('wa-queue-card').style.display = 'block';
-        document.getElementById('img-attach-note').style.display = uploadedImageUrl ? 'block' : 'none';
-        html += `<div class="result-box result-success" style="margin-top:10px"><i class="fab fa-whatsapp"></i> ${waQueue.length} WhatsApp contacts ready — click Send below</div>`;
+html += `<div class="result-box result-success" style="margin-top:10px"><i class="fab fa-whatsapp"></i> ${waQueue.length} WhatsApp contacts ready — click Send below</div>`;
       } else if (sendRegWa || sendWa) {
         html += `<div class="result-box result-error" style="margin-top:10px"><i class="fab fa-whatsapp"></i> No WhatsApp contacts found</div>`;
       }
