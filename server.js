@@ -107,10 +107,43 @@ const SettingsSchema = new mongoose.Schema({
   categories:        { type: mongoose.Schema.Types.Mixed, default: DEFAULT_CATEGORIES },
 }, { timestamps: true });
 
-const Product  = mongoose.model('Product',  ProductSchema);
-const User     = mongoose.model('User',     UserSchema);
-const Order    = mongoose.model('Order',    OrderSchema);
-const Settings = mongoose.model('Settings', SettingsSchema);
+const WaCustomerSchema = new mongoose.Schema({
+  name:       { type: String, default: '' },
+  phone:      { type: String, required: true, unique: true },
+  address:    { type: String, default: '' },
+  pincode:    { type: String, default: '' },
+  orderCount: { type: Number, default: 1 },
+  totalSpent: { type: Number, default: 0 },
+  lastOrderId:{ type: String, default: '' },
+}, { timestamps: true });
+
+const Product    = mongoose.model('Product',    ProductSchema);
+const User       = mongoose.model('User',       UserSchema);
+const Order      = mongoose.model('Order',      OrderSchema);
+const Settings   = mongoose.model('Settings',   SettingsSchema);
+const WaCustomer = mongoose.model('WaCustomer', WaCustomerSchema);
+
+// Normalise phone to last 10 digits for dedup comparison
+function normalisePhone(phone) {
+  return (phone || '').replace(/[^0-9]/g, '').slice(-10);
+}
+
+async function saveWaCustomer(name, phone, address, pincode, total) {
+  try {
+    const norm = normalisePhone(phone);
+    if (!norm || norm.length < 7) return;
+    // Skip if already a registered user
+    const allUsers = await User.find({}, 'phone').lean();
+    const registeredPhones = allUsers.map(u => normalisePhone(u.phone)).filter(Boolean);
+    if (registeredPhones.includes(norm)) return;
+    // Upsert: update order count/spend if exists, create if new
+    await WaCustomer.findOneAndUpdate(
+      { phone: norm },
+      { $set: { name, address: address || '', pincode: pincode || '' }, $inc: { orderCount: 1, totalSpent: total || 0 } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  } catch(e) { console.warn('WaCustomer save failed:', e.message); }
+}
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -199,6 +232,11 @@ app.post('/api/auth/register', async (req, res) => {
     const user = await User.create({ name: name.trim(), email: email.toLowerCase(), phone: phone || '', password: bcrypt.hashSync(password, 10) });
     req.session.user = { id: user._id.toString(), role: 'customer', name: user.name, email: user.email };
     res.json({ success: true, user: req.session.user });
+    // If this phone was a WhatsApp customer, remove them (now a registered customer)
+    if (phone) {
+      const norm = normalisePhone(phone);
+      if (norm) await WaCustomer.deleteOne({ phone: norm });
+    }
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -505,6 +543,8 @@ app.post('/api/orders/whatsapp', async (req, res) => {
     notifyAdminWhatsApp(
       `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
     );
+    // Save as WhatsApp customer if not logged in and not a registered user
+    if (!req.session.user) saveWaCustomer(customerName, customerPhone, address, pincode, total);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -537,6 +577,8 @@ app.post('/api/orders', async (req, res) => {
     notifyAdminWhatsApp(
       `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
     );
+    // Save as WhatsApp customer if guest order
+    if (!req.session.user) saveWaCustomer(req.body.name, req.body.phone, req.body.address, req.body.pincode, total);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -590,6 +632,20 @@ app.get('/api/admin/customers', requireAdmin, async (req, res) => {
   try {
     const customers = await User.find().select('-password').lean();
     res.json({ customers });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/admin/wa-customers', requireAdmin, async (req, res) => {
+  try {
+    const customers = await WaCustomer.find().sort({ createdAt: -1 }).lean();
+    res.json({ customers });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/admin/wa-customers/:id', requireAdmin, async (req, res) => {
+  try {
+    await WaCustomer.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

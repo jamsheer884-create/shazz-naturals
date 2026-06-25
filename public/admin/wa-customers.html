@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WhatsApp Customers – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/categories.html"><span class="nav-icon"><i class="fa fa-th-large"></i></span> Categories</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/whatsapp-orders.html"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WhatsApp Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <a href="/admin/wa-customers.html" class="active"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WA Customers</a>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title"><h1>WhatsApp Customers</h1><p>Non-registered customers who ordered via WhatsApp or as guest</p></div>
+    </div>
+    <div class="adm-content">
+      <!-- Stats -->
+      <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+        <div class="adm-card" style="flex:1;min-width:140px;padding:18px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:700;color:#1b5e20" id="st-total">—</div>
+          <div style="font-size:0.8rem;color:#888;margin-top:4px">Total WA Customers</div>
+        </div>
+        <div class="adm-card" style="flex:1;min-width:140px;padding:18px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:700;color:#25d366" id="st-orders">—</div>
+          <div style="font-size:0.8rem;color:#888;margin-top:4px">Total Orders</div>
+        </div>
+        <div class="adm-card" style="flex:1;min-width:140px;padding:18px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:700;color:#e65100" id="st-spent">—</div>
+          <div style="font-size:0.8rem;color:#888;margin-top:4px">Total Revenue</div>
+        </div>
+      </div>
+
+      <div class="adm-toolbar">
+        <input type="text" class="adm-search" id="search" placeholder="Search by name or phone..." oninput="filterCustomers()"/>
+      </div>
+      <div class="adm-card">
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Orders</th>
+                <th>Total Spent</th>
+                <th>First Seen</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="wa-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+  let allCustomers = [];
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    await loadCustomers();
+  });
+
+  async function loadCustomers() {
+    const data = await fetch('/api/admin/wa-customers').then(r => r.json());
+    allCustomers = data.customers || [];
+    renderStats(allCustomers);
+    renderTable(allCustomers);
+  }
+
+  function renderStats(list) {
+    document.getElementById('st-total').textContent = list.length;
+    document.getElementById('st-orders').textContent = list.reduce((s, c) => s + (c.orderCount || 0), 0);
+    document.getElementById('st-spent').textContent = '₹' + list.reduce((s, c) => s + (c.totalSpent || 0), 0).toLocaleString('en-IN');
+  }
+
+  function renderTable(customers) {
+    const tbody = document.getElementById('wa-tbody');
+    if (!customers.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#888">No WhatsApp customers yet. They will appear here when non-registered customers place orders.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = customers.map((c, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:50%;background:#25d366;color:white;display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;flex-shrink:0">${(c.name||'?').charAt(0).toUpperCase()}</div>
+            <strong>${c.name || '—'}</strong>
+          </div>
+        </td>
+        <td>${c.phone || '—'}</td>
+        <td style="font-size:0.82rem;color:#555">${c.address ? c.address.substring(0, 30) + (c.address.length > 30 ? '…' : '') : '—'}${c.pincode ? ', ' + c.pincode : ''}</td>
+        <td><span style="background:#e8f5e9;color:#1b5e20;padding:2px 8px;border-radius:10px;font-size:0.82rem;font-weight:600">${c.orderCount || 0}</span></td>
+        <td><strong style="color:#1b5e20">₹${(c.totalSpent || 0).toLocaleString('en-IN')}</strong></td>
+        <td style="font-size:0.78rem;color:#888">${new Date(c.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          <a href="https://wa.me/${(c.phone||'').replace(/[^0-9]/g,'')}" target="_blank" class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none">
+            <i class="fab fa-whatsapp"></i> Chat
+          </a>
+          <button onclick="deleteCustomer('${c._id}')" class="adm-btn adm-btn-sm adm-btn-danger" title="Remove">
+            <i class="fa fa-trash"></i>
+          </button>
+        </td>
+      </tr>`).join('');
+  }
+
+  function filterCustomers() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const filtered = allCustomers.filter(c =>
+      !q || (c.name||'').toLowerCase().includes(q) || (c.phone||'').includes(q)
+    );
+    renderStats(filtered);
+    renderTable(filtered);
+  }
+
+  async function deleteCustomer(id) {
+    if (!confirm('Remove this WhatsApp customer?')) return;
+    await fetch('/api/admin/wa-customers/' + id, { method: 'DELETE' });
+    await loadCustomers();
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>
