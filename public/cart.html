@@ -160,6 +160,13 @@
       <label>PIN Code *</label>
       <input type="text" id="wa-quick-pincode" placeholder="e.g. 670001" maxlength="6" style="width:100%;box-sizing:border-box"/>
     </div>
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select id="wa-quick-payment" style="width:100%;box-sizing:border-box">
+        <option value="UPI / Google Pay" selected>UPI / Google Pay</option>
+        <option value="COD">Cash on Delivery (COD)</option>
+      </select>
+    </div>
     <button onclick="confirmWhatsAppOrder()" class="btn btn-whatsapp" style="width:100%;justify-content:center;padding:13px;font-size:1rem;margin-top:8px">
       <i class="fab fa-whatsapp"></i> Continue to WhatsApp
     </button>
@@ -386,23 +393,25 @@
     }
     const phone = '+' + document.getElementById('wa-quick-country').value + ' ' + phoneNum;
 
+    const paymentMethod = document.getElementById('wa-quick-payment').value;
+
     // Save order to database
     try {
       await fetch('/api/orders/whatsapp', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ customerName: name, customerPhone: phone, address, pincode, items: cartData })
+        body: JSON.stringify({ customerName: name, customerPhone: phone, address, pincode, items: cartData, paymentMethod })
       });
     } catch(e) { /* non-blocking — still open WhatsApp */ }
 
     document.getElementById('wa-quick-modal').classList.add('hidden');
-    _openWhatsAppWithDetails(name, phone, address, pincode);
+    _openWhatsAppWithDetails(name, phone, address, pincode, paymentMethod);
     cartData = [];
     renderCart();
     updateCartBadge();
   }
 
-  function _openWhatsAppWithDetails(name, phone, address, pincode) {
+  function _openWhatsAppWithDetails(name, phone, address, pincode, paymentMethod) {
     const settings = window._settings || {};
     const subtotal = cartData.reduce((s, i) => s + i.price * i.quantity, 0);
     const totalWeightG = cartData.reduce((s, i) => {
@@ -423,7 +432,8 @@
     const waNumber = (settings.whatsapp || '917902302884').replace(/[^0-9]/g, '');
     const itemsList = cartData.map(i => `• *${i.name}* x${i.quantity} = ₹${i.price * i.quantity}`).join('\n');
     const customerInfo = name ? `\n\n*Customer Details:*\n👤 Name: ${name}\n📱 Phone: ${phone}${address ? '\n🏠 Address: ' + address : ''}${pincode ? '\n📍 PIN: ' + pincode : ''}` : '';
-    const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ₹${shipping}\n*Total: ₹${total}*\n\nPlease confirm my order. Thank you! 🙏`;
+    const paymentLine = paymentMethod ? `\n*Payment:* ${paymentMethod}` : '';
+    const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ₹${shipping}\n*Total: ₹${total}*${paymentLine}\n\nPlease confirm my order. Thank you! 🙏`;
     window.open('https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg), '_blank');
   }
 

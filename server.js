@@ -476,7 +476,7 @@ function calcShippingByWeight(items) {
 
 app.post('/api/orders/whatsapp', async (req, res) => {
   try {
-    const { customerName, customerPhone, address, pincode, items } = req.body;
+    const { customerName, customerPhone, address, pincode, items, paymentMethod } = req.body;
     if (!customerName || !customerPhone) return res.status(400).json({ error: 'Name and phone required' });
     if (!items || !items.length) return res.status(400).json({ error: 'No items in order' });
     const subtotal = items.reduce((acc, i) => acc + (Number(i.price) * Number(i.quantity)), 0);
@@ -495,7 +495,7 @@ app.post('/api/orders/whatsapp', async (req, res) => {
       total,
       orderSource:   'whatsapp',
       status:        'Pending',
-      paymentMethod: 'COD',
+      paymentMethod: paymentMethod || 'COD',
     });
     req.session.cart = [];
     res.json({ success: true, orderId: order.orderId });
