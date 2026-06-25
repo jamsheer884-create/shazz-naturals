@@ -683,10 +683,10 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/send-promo', requireAdmin, async (req, res) => {
   try {
-    const { subject, message, imageUrl, sendEmail, sendWhatsApp } = req.body;
+    const { subject, message, imageUrl, sendEmail, sendRegWhatsApp, sendWhatsApp } = req.body;
     if (!message) return res.status(400).json({ error: 'Message is required' });
     const s = await Settings.findOne({ key: 'main' }).lean();
-    const results = { emailsSent: 0, emailsFailed: 0, waCustomers: [] };
+    const results = { emailsSent: 0, emailsFailed: 0, waCustomers: [], regWaCustomers: [] };
 
     // ── Email ────────────────────────────────────────────────────────────────
     if (sendEmail) {
@@ -721,7 +721,17 @@ app.post('/api/admin/send-promo', requireAdmin, async (req, res) => {
       }
     }
 
-    // ── WhatsApp customer list (frontend opens chats) ─────────────────────
+    // ── Registered customers WhatsApp ─────────────────────────────────────
+    if (sendRegWhatsApp) {
+      const users = await User.find({ phone: { $exists: true, $ne: '' } }, 'name phone').lean();
+      results.regWaCustomers = users.map(u => {
+        const digits = (u.phone || '').replace(/[^0-9]/g, '');
+        const phone  = digits.length > 10 ? digits : '91' + digits;
+        return { name: u.name, phone };
+      }).filter(u => u.phone.length >= 10);
+    }
+
+    // ── WhatsApp customers list (frontend opens chats) ────────────────────
     if (sendWhatsApp) {
       const waCustomers = await WaCustomer.find().lean();
       results.waCustomers = waCustomers.map(c => ({

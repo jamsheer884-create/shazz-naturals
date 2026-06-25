@@ -93,6 +93,9 @@
                 <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;font-size:0.88rem">
                   <input type="checkbox" id="send-email" checked/> <i class="fa fa-envelope" style="color:#1b5e20"></i> Registered Customers (Email) <span id="reg-count" style="color:#888;font-size:0.78rem"></span>
                 </label>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;font-size:0.88rem">
+                  <input type="checkbox" id="send-reg-wa" checked/> <i class="fab fa-whatsapp" style="color:#25d366"></i> Registered Customers (WhatsApp) <span id="reg-wa-count" style="color:#888;font-size:0.78rem"></span>
+                </label>
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem">
                   <input type="checkbox" id="send-wa" checked/> <i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp Customers <span id="wa-count" style="color:#888;font-size:0.78rem"></span>
                 </label>
@@ -155,10 +158,13 @@
       fetch('/api/admin/customers').then(r => r.json()),
       fetch('/api/admin/wa-customers').then(r => r.json()),
     ]);
-    const regCount = (regData.customers || []).length;
-    const waCount  = (waData.customers || []).length;
-    document.getElementById('reg-count').textContent = `(${regCount})`;
-    document.getElementById('wa-count').textContent  = `(${waCount})`;
+    const regCustomers = regData.customers || [];
+    const regCount  = regCustomers.length;
+    const regWaCount = regCustomers.filter(c => c.phone).length;
+    const waCount   = (waData.customers || []).length;
+    document.getElementById('reg-count').textContent    = `(${regCount})`;
+    document.getElementById('reg-wa-count').textContent = `(${regWaCount})`;
+    document.getElementById('wa-count').textContent     = `(${waCount})`;
 
     // Live preview
     document.getElementById('promo-subject').addEventListener('input', updatePreview);
@@ -210,13 +216,14 @@
   }
 
   async function sendPromo() {
-    const subject   = document.getElementById('promo-subject').value.trim();
-    const message   = document.getElementById('promo-message').value.trim();
-    const sendEmail = document.getElementById('send-email').checked;
-    const sendWa    = document.getElementById('send-wa').checked;
+    const subject    = document.getElementById('promo-subject').value.trim();
+    const message    = document.getElementById('promo-message').value.trim();
+    const sendEmail  = document.getElementById('send-email').checked;
+    const sendRegWa  = document.getElementById('send-reg-wa').checked;
+    const sendWa     = document.getElementById('send-wa').checked;
 
     if (!message) { alert('Please write a message first.'); return; }
-    if (!sendEmail && !sendWa) { alert('Please select at least one send target.'); return; }
+    if (!sendEmail && !sendRegWa && !sendWa) { alert('Please select at least one send target.'); return; }
 
     const btn = document.getElementById('send-btn');
     btn.disabled = true;
@@ -226,10 +233,11 @@
       const res = await fetch('/api/admin/send-promo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, message, imageUrl: uploadedImageUrl, sendEmail, sendWhatsApp: sendWa }),
+        body: JSON.stringify({ subject, message, imageUrl: uploadedImageUrl, sendEmail, sendRegWhatsApp: sendRegWa, sendWhatsApp: sendWa }),
       }).then(r => r.json());
 
       let html = '';
+      waMessage = (subject ? '*' + subject + '*\n\n' : '') + message + (uploadedImageUrl ? '\n\n' + uploadedImageUrl : '');
 
       if (sendEmail) {
         if (res.emailError) {
@@ -239,14 +247,17 @@
         }
       }
 
-      if (sendWa && res.waCustomers && res.waCustomers.length > 0) {
-        waQueue = res.waCustomers;
-        waMessage = (subject ? '*' + subject + '*\n\n' : '') + message + (uploadedImageUrl ? '\n\n[Image: ' + uploadedImageUrl + ']' : '');
+      // Merge reg WA + WA customers into one queue
+      waQueue = [];
+      if (sendRegWa && res.regWaCustomers && res.regWaCustomers.length > 0) waQueue = waQueue.concat(res.regWaCustomers);
+      if (sendWa && res.waCustomers && res.waCustomers.length > 0) waQueue = waQueue.concat(res.waCustomers);
+
+      if (waQueue.length > 0) {
         renderWaQueue();
         document.getElementById('wa-queue-card').style.display = 'block';
-        html += `<div class="result-box result-success" style="margin-top:10px"><i class="fab fa-whatsapp"></i> ${waQueue.length} WhatsApp customers ready — click Send below</div>`;
-      } else if (sendWa && (!res.waCustomers || res.waCustomers.length === 0)) {
-        html += `<div class="result-box result-error" style="margin-top:10px"><i class="fab fa-whatsapp"></i> No WhatsApp customers found</div>`;
+        html += `<div class="result-box result-success" style="margin-top:10px"><i class="fab fa-whatsapp"></i> ${waQueue.length} WhatsApp contacts ready — click Send below</div>`;
+      } else if (sendRegWa || sendWa) {
+        html += `<div class="result-box result-error" style="margin-top:10px"><i class="fab fa-whatsapp"></i> No WhatsApp contacts found</div>`;
       }
 
       document.getElementById('result-box').innerHTML = html;
