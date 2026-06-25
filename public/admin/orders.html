@@ -173,7 +173,10 @@
             <ul>${(o.items || []).map(i => `<li>${i.name} ×${i.quantity}</li>`).join('')}</ul>
           </div>
         </td>
-        <td><strong>₹${o.total}</strong></td>
+        <td>
+          <strong>₹${o.total}</strong>
+          ${o.shippingCharge > 0 ? `<div style="font-size:0.72rem;color:#777">Products: ₹${o.subtotal || (o.total - o.shippingCharge)}<br>Shipping: ₹${o.shippingCharge}</div>` : (o.subtotal > 0 ? `<div style="font-size:0.72rem;color:#2e7d32">Free shipping</div>` : '')}
+        </td>
         <td><span class="adm-badge badge-grey">${o.paymentMethod || 'COD'}</span></td>
         <td>
           <select class="adm-select" style="padding:5px 8px;font-size:0.78rem" onchange="updateStatus('${o.id}', this.value)">

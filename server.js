@@ -75,6 +75,8 @@ const OrderSchema = new mongoose.Schema({
     productId: String, name: String, price: Number,
     image: String, quantity: Number, weight: String
   }],
+  subtotal:      { type: Number, default: 0 },
+  shippingCharge:{ type: Number, default: 0 },
   total:         { type: Number, default: 0 },
   status:        { type: String, default: 'Pending' },
   paymentMethod: { type: String, default: 'COD' },
@@ -464,7 +466,12 @@ app.post('/api/orders/whatsapp', async (req, res) => {
     const { customerName, customerPhone, address, pincode, items } = req.body;
     if (!customerName || !customerPhone) return res.status(400).json({ error: 'Name and phone required' });
     if (!items || !items.length) return res.status(400).json({ error: 'No items in order' });
-    const total = items.reduce((s, i) => s + (Number(i.price) * Number(i.quantity)), 0);
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    const freeShippingAbove = s?.freeShippingAbove ?? 500;
+    const shippingRate = s?.shippingCharge ?? 60;
+    const subtotal = items.reduce((acc, i) => acc + (Number(i.price) * Number(i.quantity)), 0);
+    const shippingCharge = subtotal >= freeShippingAbove ? 0 : shippingRate;
+    const total = subtotal + shippingCharge;
     const order = await Order.create({
       orderId:       'ORD-WA-' + Date.now(),
       customerId:    req.session.user?.id || 'guest',
@@ -473,6 +480,8 @@ app.post('/api/orders/whatsapp', async (req, res) => {
       address:       address || '',
       pincode:       pincode || '',
       items:         items.map(i => ({ name: i.name, price: Number(i.price), quantity: Number(i.quantity), weight: i.weight || '', productId: i.productId || '', image: i.image || '' })),
+      subtotal,
+      shippingCharge,
       total,
       orderSource:   'whatsapp',
       status:        'Pending',
@@ -480,6 +489,12 @@ app.post('/api/orders/whatsapp', async (req, res) => {
     });
     req.session.cart = [];
     res.json({ success: true, orderId: order.orderId });
+
+    const itemsList = order.items.map(i => `- ${i.name} x${i.quantity}`).join('\n');
+    const shippingLine = order.shippingCharge === 0 ? 'Shipping: FREE' : `Shipping: ₹${order.shippingCharge}`;
+    notifyAdminWhatsApp(
+      `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
+    );
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -487,7 +502,12 @@ app.post('/api/orders', async (req, res) => {
   try {
     const cart = req.session.cart || [];
     if (!cart.length) return res.status(400).json({ error: 'Cart is empty' });
-    const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    const freeShippingAbove = s?.freeShippingAbove ?? 500;
+    const shippingRate = s?.shippingCharge ?? 60;
+    const subtotal = cart.reduce((acc, i) => acc + i.price * i.quantity, 0);
+    const shippingCharge = subtotal >= freeShippingAbove ? 0 : shippingRate;
+    const total = subtotal + shippingCharge;
     const order = await Order.create({
       orderId:       'ORD-' + Date.now(),
       customerId:    req.session.user?.id || 'guest',
@@ -497,6 +517,8 @@ app.post('/api/orders', async (req, res) => {
       address:       req.body.address,
       pincode:       req.body.pincode,
       items:         [...cart],
+      subtotal,
+      shippingCharge,
       total,
       paymentMethod: req.body.paymentMethod || 'COD',
     });
@@ -504,8 +526,9 @@ app.post('/api/orders', async (req, res) => {
     res.json({ success: true, order: { ...order.toObject(), id: order.orderId } });
 
     const itemsList = order.items.map(i => `- ${i.name} x${i.quantity}`).join('\n');
+    const shippingLine = order.shippingCharge === 0 ? 'Shipping: FREE' : `Shipping: ₹${order.shippingCharge}`;
     notifyAdminWhatsApp(
-      `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nTotal: ₹${order.total}\n${itemsList}`
+      `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
     );
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

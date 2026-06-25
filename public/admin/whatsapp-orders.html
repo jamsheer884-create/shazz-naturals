@@ -155,7 +155,10 @@
             <i class="fa fa-info-circle"></i> Details
           </button>
         </td>
-        <td><strong style="color:#1b5e20">₹${o.total}</strong></td>
+        <td>
+          <strong style="color:#1b5e20">₹${o.total}</strong>
+          ${o.shippingCharge > 0 ? `<div style="font-size:0.72rem;color:#777">Products: ₹${o.subtotal || (o.total - o.shippingCharge)}<br>Shipping: ₹${o.shippingCharge}</div>` : (o.subtotal > 0 ? `<div style="font-size:0.72rem;color:#2e7d32">Free shipping</div>` : '')}
+        </td>
         <td>
           <select class="adm-select" style="padding:5px 8px;font-size:0.78rem" onchange="updateStatus('${o.id}', this.value)">
             ${['Pending','Confirmed','Shipped','Delivered','Cancelled'].map(s => `<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
@@ -188,7 +191,8 @@
             <div style="margin-top:10px"><label style="font-weight:600;color:#555;font-size:0.78rem">Items</label>
               <ul class="items-ul">${(o.items||[]).map(i=>`<li><strong>${i.name}</strong> × ${i.quantity} — ₹${i.price} each = ₹${i.price*i.quantity}</li>`).join('')}</ul>
             </div>
-            <div style="margin-top:8px;font-weight:700;color:#1b5e20">Total: ₹${o.total}</div>
+            ${o.shippingCharge > 0 ? `<div style="margin-top:8px;color:#555;font-size:0.85rem">Products: ₹${o.subtotal || (o.total - o.shippingCharge)} &nbsp;|&nbsp; Shipping: ₹${o.shippingCharge}</div>` : ''}
+            <div style="margin-top:4px;font-weight:700;color:#1b5e20">Total: ₹${o.total}${o.shippingCharge === 0 && o.subtotal > 0 ? ' <span style="font-size:0.75rem;color:#2e7d32">(Free shipping)</span>' : ''}</div>
           </div>
         </td>
       </tr>`).join('');
