@@ -4,6 +4,7 @@ const session    = require('express-session');
 const multer     = require('multer');
 const bcrypt     = require('bcryptjs');
 const mongoose   = require('mongoose');
+const nodemailer = require('nodemailer');
 const path       = require('path');
 const fs         = require('fs');
 
@@ -102,6 +103,10 @@ const SettingsSchema = new mongoose.Schema({
   youtube:           { type: String, default: '' },
   freeShippingAbove: { type: Number, default: 500 },
   shippingCharge:    { type: Number, default: 60 },
+  smtpHost:          { type: String, default: 'smtp.gmail.com' },
+  smtpPort:          { type: Number, default: 465 },
+  smtpUser:          { type: String, default: '' },
+  smtpPass:          { type: String, default: '' },
   categoryImages:    { type: mongoose.Schema.Types.Mixed, default: {} },
   heroSlides:        { type: mongoose.Schema.Types.Mixed, default: [{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''},{image:'',title:'',subtitle:''}] },
   categories:        { type: mongoose.Schema.Types.Mixed, default: DEFAULT_CATEGORIES },
@@ -666,6 +671,59 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     const pendingOrders = orders.filter(o => o.status === 'Pending').length;
     const customers = registeredCustomers + waCustomers;
     res.json({ products, customers, registeredCustomers, waCustomers, orders: activeOrders.length, pendingOrders, revenue, recentOrders: orders.slice(0, 5).map(o => ({ ...o, id: o.orderId })) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/send-promo', requireAdmin, async (req, res) => {
+  try {
+    const { subject, message, imageUrl, sendEmail, sendWhatsApp } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message is required' });
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    const results = { emailsSent: 0, emailsFailed: 0, waCustomers: [] };
+
+    // ── Email ────────────────────────────────────────────────────────────────
+    if (sendEmail) {
+      const users = await User.find({ email: { $exists: true, $ne: '' } }).lean();
+      if (!s.smtpUser || !s.smtpPass) {
+        results.emailError = 'SMTP not configured in Settings';
+      } else {
+        const transporter = nodemailer.createTransport({
+          host: s.smtpHost || 'smtp.gmail.com',
+          port: s.smtpPort || 465,
+          secure: true,
+          auth: { user: s.smtpUser, pass: s.smtpPass },
+        });
+        for (const u of users) {
+          try {
+            await transporter.sendMail({
+              from: `"${s.siteName || "Shazz Natural's"}" <${s.smtpUser}>`,
+              to: u.email,
+              subject: subject || "Special Offer from Shazz Natural's",
+              html: `
+                <div style="font-family:sans-serif;max-width:520px;margin:auto">
+                  <h2 style="color:#1b5e20">${subject || "Special Offer from Shazz Natural's"}</h2>
+                  ${imageUrl ? `<img src="${imageUrl}" style="width:100%;border-radius:10px;margin-bottom:16px"/>` : ''}
+                  <p style="font-size:1rem;color:#333;white-space:pre-line">${message}</p>
+                  <hr style="border:none;border-top:1px solid #eee;margin:20px 0"/>
+                  <p style="font-size:0.8rem;color:#888">Shazz Natural's · Kerala, India</p>
+                </div>`,
+            });
+            results.emailsSent++;
+          } catch(e) { results.emailsFailed++; }
+        }
+      }
+    }
+
+    // ── WhatsApp customer list (frontend opens chats) ─────────────────────
+    if (sendWhatsApp) {
+      const waCustomers = await WaCustomer.find().lean();
+      results.waCustomers = waCustomers.map(c => ({
+        name: c.name,
+        phone: c.fullPhone || (c.phone.length === 10 ? '91' + c.phone : c.phone),
+      }));
+    }
+
+    res.json({ success: true, ...results });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

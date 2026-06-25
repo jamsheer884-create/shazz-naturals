@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ads / Promo – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .promo-layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    @media(max-width:800px){ .promo-layout{ grid-template-columns:1fr; } }
+    .img-drop { border:2px dashed #b2dfdb; border-radius:12px; padding:32px; text-align:center; cursor:pointer; position:relative; background:#f9fffe; transition:all 0.2s; }
+    .img-drop:hover { border-color:#1b5e20; background:#f0f7f0; }
+    .img-drop input[type=file]{ position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2; }
+    .img-drop img { max-width:100%;max-height:220px;object-fit:contain;border-radius:8px;display:block;margin:0 auto; }
+    .send-btn { display:flex;align-items:center;gap:10px;padding:13px 22px;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s; }
+    .send-email-btn { background:#1b5e20;color:#fff; }
+    .send-wa-btn    { background:#25d366;color:#fff; }
+    .send-all-btn   { background:#e65100;color:#fff; }
+    .send-btn:disabled { opacity:0.5;cursor:not-allowed; }
+    .wa-list { max-height:320px;overflow-y:auto; }
+    .wa-item { display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:0.88rem; }
+    .wa-item:last-child { border-bottom:none; }
+    .result-box { border-radius:10px;padding:14px 18px;margin-top:16px;font-size:0.88rem; }
+    .result-success { background:#e8f5e9;color:#1b5e20; }
+    .result-error   { background:#fdecea;color:#c62828; }
+  </style>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/categories.html"><span class="nav-icon"><i class="fa fa-th-large"></i></span> Categories</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/whatsapp-orders.html"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WhatsApp Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <a href="/admin/wa-customers.html"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WA Customers</a>
+      <a href="/admin/ads-promo.html" class="active"><span class="nav-icon"><i class="fa fa-bullhorn"></i></span> Ads / Promo</a>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title">
+        <h1><i class="fa fa-bullhorn" style="color:#e65100"></i> Ads / Promo Notification</h1>
+        <p>Send promotional images & messages to your customers via Email and WhatsApp</p>
+      </div>
+    </div>
+
+    <div class="adm-content">
+      <div class="promo-layout">
+
+        <!-- LEFT: Compose -->
+        <div>
+          <div class="adm-card" style="margin-bottom:20px">
+            <div class="adm-card-header"><h2><i class="fa fa-image"></i> Promo Image</h2></div>
+            <div class="adm-card-body">
+              <div class="img-drop" id="img-drop" onclick="document.getElementById('promo-img-input').click()">
+                <input type="file" id="promo-img-input" accept="image/*" onchange="handleImageSelect(event)"/>
+                <div id="img-placeholder">
+                  <div style="font-size:2.5rem;margin-bottom:10px;opacity:0.4"><i class="fa fa-cloud-upload-alt"></i></div>
+                  <p style="color:#777;font-size:0.88rem">Click to upload promo image<br><span style="font-size:0.78rem;color:#aaa">JPG, PNG, WebP – max 10MB</span></p>
+                </div>
+                <img id="img-preview" style="display:none"/>
+              </div>
+              <button onclick="clearImage()" id="clear-img-btn" style="display:none;margin-top:8px;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:0.82rem"><i class="fa fa-times"></i> Remove Image</button>
+              <div id="upload-status" style="font-size:0.82rem;color:#777;margin-top:6px"></div>
+            </div>
+          </div>
+
+          <div class="adm-card">
+            <div class="adm-card-header"><h2><i class="fa fa-pen"></i> Message</h2></div>
+            <div class="adm-card-body">
+              <div class="adm-form-group">
+                <label>Subject / Title</label>
+                <input type="text" id="promo-subject" placeholder="e.g. New Launch! 🌿 Carrot Glow Oil" style="width:100%;box-sizing:border-box"/>
+              </div>
+              <div class="adm-form-group" style="margin-top:12px">
+                <label>Message</label>
+                <textarea id="promo-message" rows="5" placeholder="Write your promo message here...&#10;e.g. Exciting news! Our new Carrot Glow Face Oil is now available. Limited stock – grab yours today! 🎉" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;resize:vertical"></textarea>
+              </div>
+
+              <!-- Who to send to -->
+              <div style="margin-top:14px;padding:14px;background:#f9f9f9;border-radius:10px">
+                <div style="font-weight:700;color:#333;margin-bottom:10px;font-size:0.88rem">Send To:</div>
+                <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;font-size:0.88rem">
+                  <input type="checkbox" id="send-email" checked/> <i class="fa fa-envelope" style="color:#1b5e20"></i> Registered Customers (Email) <span id="reg-count" style="color:#888;font-size:0.78rem"></span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem">
+                  <input type="checkbox" id="send-wa" checked/> <i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp Customers <span id="wa-count" style="color:#888;font-size:0.78rem"></span>
+                </label>
+              </div>
+
+              <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+                <button class="send-btn send-all-btn" onclick="sendPromo()" id="send-btn">
+                  <i class="fa fa-paper-plane"></i> Send Now
+                </button>
+              </div>
+              <div id="result-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Preview + WA list -->
+        <div>
+          <div class="adm-card" style="margin-bottom:20px">
+            <div class="adm-card-header"><h2><i class="fa fa-eye"></i> Message Preview</h2></div>
+            <div class="adm-card-body">
+              <div style="border:1px solid #eee;border-radius:10px;padding:16px;background:#fff;min-height:120px">
+                <img id="preview-img" style="width:100%;border-radius:8px;margin-bottom:12px;display:none"/>
+                <div id="preview-subject" style="font-weight:700;color:#1b5e20;font-size:1rem;margin-bottom:6px"></div>
+                <div id="preview-message" style="font-size:0.88rem;color:#444;white-space:pre-line"></div>
+                <div id="preview-empty" style="color:#aaa;font-size:0.85rem;text-align:center;padding:20px 0">Fill in the message to see a preview</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="adm-card" id="wa-queue-card" style="display:none">
+            <div class="adm-card-header">
+              <h2><i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp Send Queue</h2>
+            </div>
+            <div class="adm-card-body">
+              <p style="font-size:0.82rem;color:#777;margin-bottom:12px">Click each button to open WhatsApp and send the message. Or use <strong>Send All</strong> to open them one by one automatically.</p>
+              <button onclick="sendAllWhatsApp()" id="send-all-wa-btn" class="send-btn send-wa-btn" style="margin-bottom:12px;font-size:0.85rem;padding:9px 16px">
+                <i class="fab fa-whatsapp"></i> Send All WhatsApp
+              </button>
+              <div class="wa-list" id="wa-list"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  let uploadedImageUrl = '';
+  let waQueue = [];
+  let waMessage = '';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+
+    // Load counts
+    const [regData, waData] = await Promise.all([
+      fetch('/api/admin/customers').then(r => r.json()),
+      fetch('/api/admin/wa-customers').then(r => r.json()),
+    ]);
+    const regCount = (regData.customers || []).length;
+    const waCount  = (waData.customers || []).length;
+    document.getElementById('reg-count').textContent = `(${regCount})`;
+    document.getElementById('wa-count').textContent  = `(${waCount})`;
+
+    // Live preview
+    document.getElementById('promo-subject').addEventListener('input', updatePreview);
+    document.getElementById('promo-message').addEventListener('input', updatePreview);
+  });
+
+  function updatePreview() {
+    const subject = document.getElementById('promo-subject').value.trim();
+    const msg     = document.getElementById('promo-message').value.trim();
+    document.getElementById('preview-subject').textContent = subject;
+    document.getElementById('preview-message').textContent = msg;
+    document.getElementById('preview-empty').style.display = (subject || msg) ? 'none' : 'block';
+  }
+
+  async function handleImageSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = document.getElementById('upload-status');
+    status.textContent = 'Uploading...';
+
+    const fd = new FormData();
+    fd.append('image', file);
+    try {
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd }).then(r => r.json());
+      uploadedImageUrl = res.url || res.imageUrl || '';
+      const preview = document.getElementById('img-preview');
+      preview.src = uploadedImageUrl;
+      preview.style.display = 'block';
+      document.getElementById('img-placeholder').style.display = 'none';
+      document.getElementById('clear-img-btn').style.display = 'inline-block';
+      document.getElementById('preview-img').src = uploadedImageUrl;
+      document.getElementById('preview-img').style.display = 'block';
+      status.textContent = 'Image uploaded ✓';
+      status.style.color = '#1b5e20';
+    } catch(err) {
+      status.textContent = 'Upload failed. Try again.';
+      status.style.color = '#c62828';
+    }
+  }
+
+  function clearImage() {
+    uploadedImageUrl = '';
+    document.getElementById('img-preview').style.display = 'none';
+    document.getElementById('img-placeholder').style.display = 'block';
+    document.getElementById('clear-img-btn').style.display = 'none';
+    document.getElementById('preview-img').style.display = 'none';
+    document.getElementById('promo-img-input').value = '';
+    document.getElementById('upload-status').textContent = '';
+  }
+
+  async function sendPromo() {
+    const subject   = document.getElementById('promo-subject').value.trim();
+    const message   = document.getElementById('promo-message').value.trim();
+    const sendEmail = document.getElementById('send-email').checked;
+    const sendWa    = document.getElementById('send-wa').checked;
+
+    if (!message) { alert('Please write a message first.'); return; }
+    if (!sendEmail && !sendWa) { alert('Please select at least one send target.'); return; }
+
+    const btn = document.getElementById('send-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sending...';
+
+    try {
+      const res = await fetch('/api/admin/send-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, message, imageUrl: uploadedImageUrl, sendEmail, sendWhatsApp: sendWa }),
+      }).then(r => r.json());
+
+      let html = '';
+
+      if (sendEmail) {
+        if (res.emailError) {
+          html += `<div class="result-box result-error"><i class="fa fa-exclamation-circle"></i> Email: ${res.emailError}</div>`;
+        } else {
+          html += `<div class="result-box result-success"><i class="fa fa-check-circle"></i> Emails sent: ${res.emailsSent} &nbsp;|&nbsp; Failed: ${res.emailsFailed}</div>`;
+        }
+      }
+
+      if (sendWa && res.waCustomers && res.waCustomers.length > 0) {
+        waQueue = res.waCustomers;
+        waMessage = (subject ? '*' + subject + '*\n\n' : '') + message + (uploadedImageUrl ? '\n\n[Image: ' + uploadedImageUrl + ']' : '');
+        renderWaQueue();
+        document.getElementById('wa-queue-card').style.display = 'block';
+        html += `<div class="result-box result-success" style="margin-top:10px"><i class="fab fa-whatsapp"></i> ${waQueue.length} WhatsApp customers ready — click Send below</div>`;
+      } else if (sendWa && (!res.waCustomers || res.waCustomers.length === 0)) {
+        html += `<div class="result-box result-error" style="margin-top:10px"><i class="fab fa-whatsapp"></i> No WhatsApp customers found</div>`;
+      }
+
+      document.getElementById('result-box').innerHTML = html;
+    } catch(e) {
+      document.getElementById('result-box').innerHTML = `<div class="result-box result-error">Error: ${e.message}</div>`;
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-paper-plane"></i> Send Now';
+  }
+
+  function renderWaQueue() {
+    const list = document.getElementById('wa-list');
+    list.innerHTML = waQueue.map((c, i) => `
+      <div class="wa-item" id="wa-item-${i}">
+        <span><strong>${c.name || 'Customer'}</strong> &nbsp; <span style="color:#888;font-size:0.8rem">+${c.phone}</span></span>
+        <a href="https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}" target="_blank"
+           onclick="markSent(${i})"
+           class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none;white-space:nowrap">
+          <i class="fab fa-whatsapp"></i> Send
+        </a>
+      </div>`).join('');
+  }
+
+  function markSent(i) {
+    const item = document.getElementById('wa-item-' + i);
+    if (item) item.style.background = '#f0fff4';
+  }
+
+  let waSendIndex = 0;
+  function sendAllWhatsApp() {
+    if (waSendIndex >= waQueue.length) { waSendIndex = 0; }
+    function sendNext() {
+      if (waSendIndex >= waQueue.length) return;
+      const c = waQueue[waSendIndex];
+      window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(waMessage)}`, '_blank');
+      markSent(waSendIndex);
+      waSendIndex++;
+      if (waSendIndex < waQueue.length) setTimeout(sendNext, 1500);
+    }
+    sendNext();
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>
