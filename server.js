@@ -109,7 +109,8 @@ const SettingsSchema = new mongoose.Schema({
 
 const WaCustomerSchema = new mongoose.Schema({
   name:       { type: String, default: '' },
-  phone:      { type: String, required: true, unique: true },
+  phone:      { type: String, required: true, unique: true }, // last 10 digits — dedup key
+  fullPhone:  { type: String, default: '' },                  // full number with country code
   address:    { type: String, default: '' },
   pincode:    { type: String, default: '' },
   orderCount: { type: Number, default: 1 },
@@ -130,8 +131,11 @@ function normalisePhone(phone) {
 
 async function saveWaCustomer(name, phone, address, pincode, total) {
   try {
-    const norm = normalisePhone(phone);
+    const digits = (phone || '').replace(/[^0-9]/g, '');
+    const norm = digits.slice(-10);
     if (!norm || norm.length < 7) return;
+    // Build full phone with country code for WhatsApp links
+    const fullPhone = digits.length > 10 ? digits : '91' + digits;
     // Skip if already a registered user
     const allUsers = await User.find({}, 'phone').lean();
     const registeredPhones = allUsers.map(u => normalisePhone(u.phone)).filter(Boolean);
@@ -139,7 +143,7 @@ async function saveWaCustomer(name, phone, address, pincode, total) {
     // Upsert: update order count/spend if exists, create if new
     await WaCustomer.findOneAndUpdate(
       { phone: norm },
-      { $set: { name, address: address || '', pincode: pincode || '' }, $inc: { orderCount: 1, totalSpent: total || 0 } },
+      { $set: { name, fullPhone, address: address || '', pincode: pincode || '' }, $inc: { orderCount: 1, totalSpent: total || 0 } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
   } catch(e) { console.warn('WaCustomer save failed:', e.message); }

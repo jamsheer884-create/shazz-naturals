@@ -110,13 +110,13 @@
             <strong>${c.name || '—'}</strong>
           </div>
         </td>
-        <td>${c.phone || '—'}</td>
+        <td>+${c.fullPhone || c.phone || '—'}</td>
         <td style="font-size:0.82rem;color:#555">${c.address ? c.address.substring(0, 30) + (c.address.length > 30 ? '…' : '') : '—'}${c.pincode ? ', ' + c.pincode : ''}</td>
         <td><span style="background:#e8f5e9;color:#1b5e20;padding:2px 8px;border-radius:10px;font-size:0.82rem;font-weight:600">${c.orderCount || 0}</span></td>
         <td><strong style="color:#1b5e20">₹${(c.totalSpent || 0).toLocaleString('en-IN')}</strong></td>
         <td style="font-size:0.78rem;color:#888">${new Date(c.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</td>
         <td style="display:flex;gap:6px;flex-wrap:wrap">
-          <a href="https://wa.me/${(n => n.length === 10 ? '91' + n : n)((c.phone||'').replace(/[^0-9]/g,''))}" target="_blank" class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none">
+          <a href="https://wa.me/${c.fullPhone || (n => n.length === 10 ? '91' + n : n)((c.phone||'').replace(/[^0-9]/g,''))}" target="_blank" class="adm-btn adm-btn-sm" style="background:#25d366;color:#fff;border:none">
             <i class="fab fa-whatsapp"></i> Chat
           </a>
           <button onclick="deleteCustomer('${c._id}')" class="adm-btn adm-btn-sm adm-btn-danger" title="Remove">
