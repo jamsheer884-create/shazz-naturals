@@ -161,6 +161,10 @@
       <input type="text" id="wa-quick-pincode" placeholder="e.g. 670001" maxlength="6" style="width:100%;box-sizing:border-box"/>
     </div>
     <div class="form-group">
+      <label>Email Address <span style="color:#aaa;font-size:0.8rem">(optional)</span></label>
+      <input type="email" id="wa-quick-email" placeholder="yourname@email.com" style="width:100%;box-sizing:border-box"/>
+    </div>
+    <div class="form-group">
       <label>Payment Method</label>
       <select id="wa-quick-payment" style="width:100%;box-sizing:border-box">
         <option value="UPI / Google Pay" selected>UPI / Google Pay</option>
@@ -387,6 +391,7 @@
     const phoneNum = document.getElementById('wa-quick-phone').value.trim();
     const address = document.getElementById('wa-quick-address').value.trim();
     const pincode = document.getElementById('wa-quick-pincode').value.trim();
+    const email = document.getElementById('wa-quick-email').value.trim();
     const alertDiv = document.getElementById('wa-quick-alert');
     if (!name || !phoneNum || !address || !pincode) {
       alertDiv.innerHTML = '<div class="alert alert-error" style="margin-bottom:10px">Please fill in all fields.</div>';
@@ -401,7 +406,7 @@
       await fetch('/api/orders/whatsapp', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ customerName: name, customerPhone: phone, address, pincode, items: cartData, paymentMethod })
+        body: JSON.stringify({ customerName: name, customerPhone: phone, address, pincode, email, items: cartData, paymentMethod })
       });
     } catch(e) { /* non-blocking — still open WhatsApp */ }
 

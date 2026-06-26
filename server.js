@@ -116,6 +116,7 @@ const WaCustomerSchema = new mongoose.Schema({
   name:       { type: String, default: '' },
   phone:      { type: String, required: true, unique: true }, // last 10 digits — dedup key
   fullPhone:  { type: String, default: '' },                  // full number with country code
+  email:      { type: String, default: '' },
   address:    { type: String, default: '' },
   pincode:    { type: String, default: '' },
   orderCount: { type: Number, default: 1 },
@@ -134,21 +135,18 @@ function normalisePhone(phone) {
   return (phone || '').replace(/[^0-9]/g, '').slice(-10);
 }
 
-async function saveWaCustomer(name, phone, address, pincode, total) {
+async function saveWaCustomer(name, phone, address, pincode, total, email) {
   try {
     const digits = (phone || '').replace(/[^0-9]/g, '');
     const norm = digits.slice(-10);
     if (!norm || norm.length < 7) return;
-    // Build full phone with country code for WhatsApp links
     const fullPhone = digits.length > 10 ? digits : '91' + digits;
-    // Skip if already a registered user
     const allUsers = await User.find({}, 'phone').lean();
     const registeredPhones = allUsers.map(u => normalisePhone(u.phone)).filter(Boolean);
     if (registeredPhones.includes(norm)) return;
-    // Upsert: update order count/spend if exists, create if new
     await WaCustomer.findOneAndUpdate(
       { phone: norm },
-      { $set: { name, fullPhone, address: address || '', pincode: pincode || '' }, $inc: { orderCount: 1, totalSpent: total || 0 } },
+      { $set: { name, fullPhone, address: address || '', pincode: pincode || '', ...(email ? { email } : {}) }, $inc: { orderCount: 1, totalSpent: total || 0 } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
   } catch(e) { console.warn('WaCustomer save failed:', e.message); }
@@ -560,7 +558,7 @@ app.post('/api/orders/whatsapp', async (req, res) => {
       `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
     );
     // Save as WhatsApp customer if not logged in and not a registered user
-    if (!req.session.user) saveWaCustomer(customerName, customerPhone, address, pincode, total);
+    if (!req.session.user) saveWaCustomer(customerName, customerPhone, address, pincode, total, req.body.email);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -594,7 +592,7 @@ app.post('/api/orders', async (req, res) => {
       `🛒 New Order ${order.orderId}\nName: ${order.customerName}\nPhone: ${order.customerPhone}\nPayment: ${order.paymentMethod}\nProducts: ₹${order.subtotal}\n${shippingLine}\nTotal: ₹${order.total}\n${itemsList}`
     );
     // Save as WhatsApp customer if guest order
-    if (!req.session.user) saveWaCustomer(req.body.name, req.body.phone, req.body.address, req.body.pincode, total);
+    if (!req.session.user) saveWaCustomer(req.body.name, req.body.phone, req.body.address, req.body.pincode, total, req.body.email);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
