@@ -244,12 +244,18 @@ app.post('/api/auth/register', async (req, res) => {
       const norm = normalisePhone(phone);
       if (norm) await WaCustomer.deleteOne({ phone: norm });
     }
-    // Notify n8n webhook
+    // Notify admin via n8n
     fetch('https://undone-litigate-rewind.ngrok-free.dev/webhook/8289d7d1-1d85-4a45-9a92-b4d2030cf14e', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: user.name, email: user.email, phone: user.phone, type: 'registered' })
-    }).then(r => console.log('n8n webhook:', r.status)).catch(e => console.log('n8n webhook error:', e.message));
+    }).then(r => console.log('n8n admin webhook:', r.status)).catch(e => console.log('n8n webhook error:', e.message));
+    // Send welcome email to customer via n8n
+    fetch('https://undone-litigate-rewind.ngrok-free.dev/webhook/493a1551-eb3f-400b-8914-9edd922b99ff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: user.name, email: user.email, phone: user.phone })
+    }).then(r => console.log('n8n welcome webhook:', r.status)).catch(e => console.log('n8n welcome error:', e.message));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
