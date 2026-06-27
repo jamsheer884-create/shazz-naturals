@@ -700,8 +700,9 @@ app.post('/api/admin/send-promo', requireAdmin, async (req, res) => {
       } else {
         const transporter = nodemailer.createTransport({
           host: s.smtpHost || 'smtp.gmail.com',
-          port: s.smtpPort || 465,
-          secure: true,
+          port: 587,
+          secure: false,
+          requireTLS: true,
           auth: { user: s.smtpUser, pass: s.smtpPass },
         });
         for (const u of users) {
