@@ -703,6 +703,7 @@ app.post('/api/admin/send-promo', requireAdmin, async (req, res) => {
           port: 587,
           secure: false,
           requireTLS: true,
+          family: 4,
           auth: { user: s.smtpUser, pass: s.smtpPass },
         });
         for (const u of users) {
