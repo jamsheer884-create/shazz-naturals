@@ -247,7 +247,7 @@
       }).then(r => r.json());
 
       let html = '';
-      waMessage = '🌿*SHAZZ NATURAL\'S*---PROMO NOTIFICATION\n\n' + (subject ? '*' + subject + '*\n\n' : '') + message + (uploadedImageUrl ? '\n\n👉 View Offer Image:\n' + uploadedImageUrl : '');
+      waMessage = '🌿*SHAZZ NATURAL\'S*---PROMO NOTIFICATION\n\n' + (subject ? '*' + subject + '*\n\n' : '') + message + (uploadedImageUrl ? '\n\n👉 View Offer Image:\n' + uploadedImageUrl : '') + '\n\n🛒 *SHOP NOW:*\nhttps://shazz-naturals.onrender.com';
 
       if (sendEmail) {
         if (res.emailError) {
