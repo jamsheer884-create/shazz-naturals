@@ -721,7 +721,7 @@ app.post('/api/admin/send-promo', requireAdmin, async (req, res) => {
                 </div>`,
             });
             results.emailsSent++;
-          } catch(e) { results.emailsFailed++; }
+          } catch(e) { results.emailsFailed++; console.error('Email error:', e.message); }
         }
       }
     }
