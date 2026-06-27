@@ -260,6 +260,8 @@
 <script src="/js/main.js"></script>
 <script>
   let cartData = [];
+  let newCustomerDiscount = 0;
+  let newCustomerDiscountPercent = 0;
 
   document.addEventListener('DOMContentLoaded', async () => {
     await loadSettings();
@@ -318,6 +320,8 @@
         if (discData.eligible) {
           discountPercent = discData.discountPercent;
           discount = Math.round(subtotal * discountPercent / 100);
+          newCustomerDiscount = discount;
+          newCustomerDiscountPercent = discountPercent;
           document.getElementById('discount-row').style.display = 'flex';
           document.getElementById('discount-percent').textContent = discountPercent;
           document.getElementById('discount-amount').textContent = '-₹' + discount;
@@ -455,12 +459,13 @@
       return 225;
     }
     const shipping = getDeliveryCharge(totalWeightG);
-    const total = subtotal + shipping;
+    const total = subtotal + shipping - newCustomerDiscount;
     const waNumber = (settings.whatsapp || '917902302884').replace(/[^0-9]/g, '');
     const itemsList = cartData.map(i => `• *${i.name}* x${i.quantity} = ₹${i.price * i.quantity}`).join('\n');
     const customerInfo = name ? `\n\n*Customer Details:*\n👤 Name: ${name}\n📱 Phone: ${phone}${address ? '\n🏠 Address: ' + address : ''}${pincode ? '\n📍 PIN: ' + pincode : ''}` : '';
     const paymentLine = paymentMethod ? `\n*Payment:* ${paymentMethod}` : '';
-    const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ₹${shipping}\n*Total: ₹${total}*${paymentLine}\n\nPlease confirm my order. Thank you! 🙏`;
+    const discountLine = newCustomerDiscount > 0 ? `\n🎉 *New Customer Discount (${newCustomerDiscountPercent}%):* -₹${newCustomerDiscount}` : '';
+    const msg = `🌿 *New Order – Shazz Natural's Website*${customerInfo}\n\n*Items Ordered:*\n${itemsList}\n\n*Subtotal:* ₹${subtotal}\n*Shipping:* ₹${shipping}${discountLine}\n*Total: ₹${total}*${paymentLine}\n\nPlease confirm my order. Thank you! 🙏`;
     window.open('https://wa.me/' + waNumber + '?text=' + encodeURIComponent(msg), '_blank');
   }
 
