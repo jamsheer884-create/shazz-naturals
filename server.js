@@ -76,13 +76,15 @@ const OrderSchema = new mongoose.Schema({
     productId: String, name: String, price: Number,
     image: String, quantity: Number, weight: String
   }],
-  subtotal:      { type: Number, default: 0 },
-  shippingCharge:{ type: Number, default: 0 },
-  total:         { type: Number, default: 0 },
-  status:        { type: String, default: 'Pending' },
-  paymentMethod: { type: String, default: 'COD' },
-  orderSource:   { type: String, default: 'website' }, // 'website' or 'whatsapp'
-  notes:         { type: String, default: '' },
+  subtotal:        { type: Number, default: 0 },
+  shippingCharge:  { type: Number, default: 0 },
+  discount:        { type: Number, default: 0 },
+  discountPercent: { type: Number, default: 0 },
+  total:           { type: Number, default: 0 },
+  status:          { type: String, default: 'Pending' },
+  paymentMethod:   { type: String, default: 'COD' },
+  orderSource:     { type: String, default: 'website' },
+  notes:           { type: String, default: '' },
 }, { timestamps: true });
 
 const SettingsSchema = new mongoose.Schema({
@@ -101,8 +103,9 @@ const SettingsSchema = new mongoose.Schema({
   instagram:         { type: String, default: '' },
   facebook:          { type: String, default: '' },
   youtube:           { type: String, default: '' },
-  freeShippingAbove: { type: Number, default: 500 },
-  shippingCharge:    { type: Number, default: 60 },
+  freeShippingAbove:          { type: Number, default: 500 },
+  shippingCharge:             { type: Number, default: 60 },
+  newCustomerDiscountPercent: { type: Number, default: 10 },
   smtpHost:          { type: String, default: 'smtp.gmail.com' },
   smtpPort:          { type: Number, default: 465 },
   smtpUser:          { type: String, default: '' },
@@ -571,6 +574,16 @@ app.post('/api/orders/whatsapp', async (req, res) => {
     );
     // Save as WhatsApp customer if not logged in and not a registered user
     if (!req.session.user) saveWaCustomer(customerName, customerPhone, address, pincode, total, req.body.email);
+    // Send "register for discount" email to WhatsApp customer if they provided email
+    if (!req.session.user && req.body.email) {
+      const s = await Settings.findOne({ key: 'main' }).lean();
+      const discountPercent = s?.newCustomerDiscountPercent ?? 10;
+      fetch('https://undone-litigate-rewind.ngrok-free.dev/webhook/493a1551-eb3f-400b-8914-9edd922b99ff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: customerName, email: req.body.email, phone: customerPhone, discountPercent, type: 'whatsapp' })
+      }).catch(e => console.log('n8n wa email error:', e.message));
+    }
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -580,20 +593,34 @@ app.post('/api/orders', async (req, res) => {
     if (!cart.length) return res.status(400).json({ error: 'Cart is empty' });
     const subtotal = cart.reduce((acc, i) => acc + i.price * i.quantity, 0);
     const shippingCharge = calcShippingByWeight(cart);
-    const total = subtotal + shippingCharge;
+
+    // Check new customer discount
+    let discount = 0, discountPercent = 0;
+    if (req.session.user) {
+      const orderCount = await Order.countDocuments({ customerId: req.session.user.id });
+      if (orderCount === 0) {
+        const s = await Settings.findOne({ key: 'main' }).lean();
+        discountPercent = s?.newCustomerDiscountPercent ?? 10;
+        discount = Math.round(subtotal * discountPercent / 100);
+      }
+    }
+    const total = subtotal + shippingCharge - discount;
+
     const order = await Order.create({
-      orderId:       'ORD-' + Date.now(),
-      customerId:    req.session.user?.id || 'guest',
-      customerName:  req.body.name,
-      customerPhone: req.body.phone,
-      customerEmail: req.body.email,
-      address:       req.body.address,
-      pincode:       req.body.pincode,
-      items:         [...cart],
+      orderId:         'ORD-' + Date.now(),
+      customerId:      req.session.user?.id || 'guest',
+      customerName:    req.body.name,
+      customerPhone:   req.body.phone,
+      customerEmail:   req.body.email,
+      address:         req.body.address,
+      pincode:         req.body.pincode,
+      items:           [...cart],
       subtotal,
       shippingCharge,
+      discount,
+      discountPercent,
       total,
-      paymentMethod: req.body.paymentMethod || 'COD',
+      paymentMethod:   req.body.paymentMethod || 'COD',
     });
     req.session.cart = [];
     res.json({ success: true, order: { ...order.toObject(), id: order.orderId } });
@@ -605,6 +632,15 @@ app.post('/api/orders', async (req, res) => {
     );
     // Save as WhatsApp customer if guest order
     if (!req.session.user) saveWaCustomer(req.body.name, req.body.phone, req.body.address, req.body.pincode, total, req.body.email);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/user/discount-eligibility', requireAuth, async (req, res) => {
+  try {
+    const s = await Settings.findOne({ key: 'main' }).lean();
+    const discountPercent = s?.newCustomerDiscountPercent ?? 10;
+    const orderCount = await Order.countDocuments({ customerId: req.session.user.id });
+    res.json({ eligible: orderCount === 0, discountPercent });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

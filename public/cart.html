@@ -86,6 +86,10 @@
               <span style="color:#2e7d32">You Save</span>
               <span style="color:#2e7d32" id="savings-amount"></span>
             </div>
+            <div class="summary-row" id="discount-row" style="display:none;background:#e8f5e9;padding:6px 8px;border-radius:6px;margin:4px 0">
+              <span style="color:#2e7d32;font-weight:600">🎉 New Customer Discount (<span id="discount-percent">10</span>%)</span>
+              <span style="color:#2e7d32;font-weight:600" id="discount-amount">-₹0</span>
+            </div>
             <div class="summary-row total">
               <span>Total</span>
               <span id="total-amount">₹0</span>
@@ -300,11 +304,28 @@
       return 225;
     }
     const shipping = getDeliveryCharge(totalWeightG);
-    const total = subtotal + shipping;
     const itemCount = cartData.reduce((s, i) => s + i.quantity, 0);
     const weightLabel = totalWeightG >= 1000
       ? (totalWeightG / 1000).toFixed(2) + ' kg'
       : Math.round(totalWeightG) + ' g';
+
+    // Check new customer discount
+    let discount = 0, discountPercent = 0;
+    try {
+      const discResp = await fetch('/api/user/discount-eligibility');
+      if (discResp.ok) {
+        const discData = await discResp.json();
+        if (discData.eligible) {
+          discountPercent = discData.discountPercent;
+          discount = Math.round(subtotal * discountPercent / 100);
+          document.getElementById('discount-row').style.display = 'flex';
+          document.getElementById('discount-percent').textContent = discountPercent;
+          document.getElementById('discount-amount').textContent = '-₹' + discount;
+        }
+      }
+    } catch(e) {}
+
+    const total = subtotal + shipping - discount;
 
     document.getElementById('item-count').textContent = itemCount;
     document.getElementById('subtotal').textContent = '₹' + subtotal;
