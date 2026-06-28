@@ -31,6 +31,12 @@
   <div class="breadcrumb"><a href="/">Home</a> › <a href="/products.html">Products</a> › <span id="bc-name">Product</span></div>
 </div>
 
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;padding:20px">
+  <button onclick="closeLightbox()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:white;font-size:2rem;cursor:pointer;z-index:2">✕</button>
+  <img id="lightbox-img" src="" style="max-width:95vw;max-height:92vh;object-fit:contain;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,0.6);user-select:none" onclick="event.stopPropagation()"/>
+</div>
+
 <section class="section section-cream">
   <div class="container">
     <div id="product-loading" class="loading-center"><div class="spinner"></div><span>Loading product...</span></div>
@@ -130,7 +136,7 @@
     detail.classList.remove('hidden');
     detail.innerHTML = `
       <div class="product-detail-imgs">
-        <div class="product-main-img">
+        <div class="product-main-img" onclick="openLightbox(document.getElementById('main-img').src)" title="Click to zoom">
           <img id="main-img" src="${p.image}" onerror="this.parentElement.innerHTML='<div style=\\'font-size:5rem;display:flex;align-items:center;justify-content:center;height:100%;color:#999\\'>${getCategoryEmoji(p.category)}</div>'" alt="${p.name}"/>
         </div>
         <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
@@ -294,6 +300,18 @@
     document.querySelectorAll('[onclick^="switchImg"]').forEach(el => el.style.border = '2px solid #ddd');
     thumb.style.border = '2px solid #c9a84c';
   }
+
+  function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    lb.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 </script>
 </body>
 </html>
