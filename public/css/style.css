@@ -472,19 +472,33 @@ h1, h2, h3, h4, h5 { font-family: var(--font-head); line-height: 1.3; }
   gap: 28px;
 }
 
+/* Product Card 3D */
+.product-card-wrap {
+  perspective: 900px;
+}
 /* Product Card */
 .product-card {
   background: white;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  transition: all 0.35s ease;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.3s;
   border: 1px solid var(--border);
   display: flex; flex-direction: column;
+  transform-style: preserve-3d;
+  will-change: transform;
+  position: relative;
 }
+.product-card .card-shine {
+  position: absolute; inset: 0;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.product-card-wrap:hover .card-shine { opacity: 1; }
 .product-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 15px 40px var(--shadow);
   border-color: var(--primary-light);
 }
 .product-img-wrap {

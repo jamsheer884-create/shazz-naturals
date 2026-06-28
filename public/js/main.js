@@ -225,7 +225,9 @@ function renderProductCard(p) {
     ? '<div style="position:absolute;inset:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;font-weight:700;color:#c62828;font-size:0.85rem">Out of Stock</div>'
     : '';
   return `
+    <div class="product-card-wrap" onmousemove="_tilt3d(this,event)" onmouseleave="_resetTilt(this)">
     <div class="product-card" onclick="window.location.href='/product.html?id=${p.id}'">
+      <div class="card-shine"></div>
       <div class="product-img-wrap">
         <img src="${p.image}"
           onerror="this.style.display='none';this.nextSibling.style.display='flex'"
@@ -264,7 +266,31 @@ function renderProductCard(p) {
           ${p.inStock ? 'Add to Cart' : 'Out of Stock'}
         </button>
       </div>
+    </div>
     </div>`;
+}
+
+// ─── 3D Card Tilt ───
+function _tilt3d(wrap, e) {
+  const card = wrap.querySelector('.product-card');
+  const shine = wrap.querySelector('.card-shine');
+  const rect = wrap.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+  const rotX = ((y - cy) / cy) * -14;
+  const rotY = ((x - cx) / cx) * 14;
+  card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.04,1.04,1.04)`;
+  card.style.boxShadow = `${-rotY * 1.2}px ${rotX * 1.2}px 40px rgba(0,0,0,0.18)`;
+  if (shine) shine.style.background = `radial-gradient(circle at ${(x/rect.width)*100}% ${(y/rect.height)*100}%, rgba(255,255,255,0.38) 0%, transparent 55%)`;
+}
+function _resetTilt(wrap) {
+  const card = wrap.querySelector('.product-card');
+  card.style.transition = 'transform 0.5s ease, box-shadow 0.5s ease, border-color 0.3s';
+  card.style.transform = 'rotateX(0) rotateY(0) scale3d(1,1,1)';
+  card.style.boxShadow = '';
+  setTimeout(() => { card.style.transition = 'transform 0.1s ease, box-shadow 0.1s ease, border-color 0.3s'; }, 500);
 }
 
 // ─── Smooth scroll for anchor links ───
