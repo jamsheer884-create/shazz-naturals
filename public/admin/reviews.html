@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reviews – Shazz Natural's Admin</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+<div class="adm-layout">
+  <aside class="adm-sidebar">
+    <div class="adm-sidebar-logo"><div class="brand">🌿 Shazz Natural's</div><div class="sub">Admin Panel</div></div>
+    <nav class="adm-nav">
+      <div class="adm-nav-section">Main</div>
+      <a href="/admin/dashboard.html"><span class="nav-icon"><i class="fa fa-chart-bar"></i></span> Dashboard</a>
+      <a href="/admin/products.html"><span class="nav-icon"><i class="fa fa-box"></i></span> Products</a>
+      <a href="/admin/categories.html"><span class="nav-icon"><i class="fa fa-th-large"></i></span> Categories</a>
+      <a href="/admin/orders.html"><span class="nav-icon"><i class="fa fa-shopping-cart"></i></span> Orders</a>
+      <a href="/admin/whatsapp-orders.html"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WhatsApp Orders</a>
+      <a href="/admin/customers.html"><span class="nav-icon"><i class="fa fa-users"></i></span> Customers</a>
+      <a href="/admin/wa-customers.html"><span class="nav-icon"><i class="fab fa-whatsapp"></i></span> WA Customers</a>
+      <a href="/admin/reviews.html" class="active"><span class="nav-icon"><i class="fa fa-star"></i></span> Reviews</a>
+      <a href="/admin/ads-promo.html"><span class="nav-icon"><i class="fa fa-bullhorn"></i></span> Ads / Promo</a>
+      <div class="adm-nav-section">Settings</div>
+      <a href="/admin/settings.html"><span class="nav-icon"><i class="fa fa-cog"></i></span> Site Settings</a>
+    </nav>
+    <div class="adm-sidebar-bottom">
+      <a href="/" target="_blank"><i class="fa fa-external-link-alt"></i> View Website</a><br><br>
+      <a href="#" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="adm-main">
+    <div class="adm-topbar">
+      <div class="adm-topbar-title"><h1>Customer Reviews</h1><p>View and manage product reviews</p></div>
+    </div>
+    <div class="adm-content">
+      <div id="page-alert"></div>
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <h2><i class="fa fa-star"></i> All Reviews <span id="review-count" style="font-size:0.8rem;font-weight:400;color:#888"></span></h2>
+        </div>
+        <div class="adm-card-body">
+          <div id="reviews-container">
+            <div style="text-align:center;padding:40px;color:#888"><i class="fa fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const me = await fetch('/api/auth/me').then(r => r.json());
+    if (!me.user || me.user.role !== 'admin') { window.location.href = '/admin/login.html'; return; }
+    loadReviews();
+  });
+
+  async function loadReviews() {
+    const res = await fetch('/api/admin/reviews');
+    const data = await res.json();
+    const reviews = data.reviews || [];
+    document.getElementById('review-count').textContent = '(' + reviews.length + ' total)';
+    const container = document.getElementById('reviews-container');
+    if (!reviews.length) {
+      container.innerHTML = '<div style="text-align:center;padding:48px;color:#aaa">No reviews yet.</div>';
+      return;
+    }
+    container.innerHTML = reviews.map(r => {
+      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const date = new Date(r.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const productName = r.productId?.name || 'Unknown Product';
+      return `<div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:12px;background:#fafafa;display:flex;align-items:flex-start;gap:16px;justify-content:space-between">
+        <div style="display:flex;gap:14px;align-items:flex-start;flex:1">
+          <div style="width:42px;height:42px;border-radius:50%;background:#1b5e20;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0">${r.name.charAt(0).toUpperCase()}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+              <span style="font-weight:700;color:#1b5e20">${r.name}</span>
+              <span style="color:#c9a84c;font-size:1rem;letter-spacing:1px">${stars}</span>
+              <span style="font-size:0.75rem;color:#aaa">${date}</span>
+            </div>
+            <div style="font-size:0.8rem;color:#888;margin-bottom:6px">Product: <b style="color:#444">${productName}</b></div>
+            ${r.comment ? `<p style="font-size:0.88rem;color:#555;margin:0;line-height:1.6">${r.comment}</p>` : '<span style="font-size:0.8rem;color:#bbb;font-style:italic">No comment</span>'}
+          </div>
+        </div>
+        <button onclick="deleteReview('${r._id}', this)" style="background:#fee2e2;border:none;border-radius:8px;padding:7px 12px;color:#c62828;cursor:pointer;font-size:0.82rem;white-space:nowrap;flex-shrink:0">
+          <i class="fa fa-trash"></i> Delete
+        </button>
+      </div>`;
+    }).join('');
+  }
+
+  async function deleteReview(id, btn) {
+    if (!confirm('Delete this review?')) return;
+    btn.disabled = true; btn.textContent = '...';
+    const res = await fetch('/api/reviews/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      showAlert('Review deleted.', 'success');
+      loadReviews();
+    } else {
+      showAlert('Delete failed.', 'error');
+      btn.disabled = false; btn.innerHTML = '<i class="fa fa-trash"></i> Delete';
+    }
+  }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('page-alert');
+    el.innerHTML = `<div class="adm-alert adm-alert-${type}">${msg}</div>`;
+    setTimeout(() => el.innerHTML = '', 3000);
+  }
+
+  async function doLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/admin/login.html';
+  }
+</script>
+</body>
+</html>

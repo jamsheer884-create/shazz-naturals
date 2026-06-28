@@ -131,11 +131,21 @@ const WaCustomerSchema = new mongoose.Schema({
   lastOrderId:{ type: String, default: '' },
 }, { timestamps: true });
 
+const ReviewSchema = new mongoose.Schema({
+  productId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+  userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  name:        { type: String, required: true },
+  rating:      { type: Number, required: true, min: 1, max: 5 },
+  comment:     { type: String, default: '' },
+  approved:    { type: Boolean, default: true },
+}, { timestamps: true });
+
 const Product    = mongoose.model('Product',    ProductSchema);
 const User       = mongoose.model('User',       UserSchema);
 const Order      = mongoose.model('Order',      OrderSchema);
 const Settings   = mongoose.model('Settings',   SettingsSchema);
 const WaCustomer = mongoose.model('WaCustomer', WaCustomerSchema);
+const Review     = mongoose.model('Review',     ReviewSchema);
 
 // Normalise phone to last 10 digits for dedup comparison
 function normalisePhone(phone) {
@@ -359,6 +369,48 @@ app.delete('/api/products/:id/extra-image', requireAdmin, async (req, res) => {
 app.delete('/api/products/:id', requireAdmin, async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ─────────────────── REVIEWS ─────────────────────────────────────────────────
+
+app.get('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const reviews = await Review.find({ productId: req.params.id, approved: true }).sort({ createdAt: -1 }).lean();
+    res.json({ reviews });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const { name, rating, comment } = req.body;
+    if (!name || !rating) return res.status(400).json({ error: 'Name and rating required' });
+    const userId = req.session?.userId || null;
+    const review = await Review.create({ productId: req.params.id, userId, name, rating: Number(rating), comment });
+    // Update product's average rating and review count
+    const all = await Review.find({ productId: req.params.id, approved: true });
+    const avg = all.reduce((s,r) => s + r.rating, 0) / all.length;
+    await Product.findByIdAndUpdate(req.params.id, { rating: Math.round(avg*10)/10, reviewCount: all.length });
+    res.json({ success: true, review });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/admin/reviews', requireAdmin, async (req, res) => {
+  try {
+    const reviews = await Review.find().sort({ createdAt: -1 }).populate('productId','name').lean();
+    res.json({ reviews });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    const review = await Review.findByIdAndDelete(req.params.id);
+    if (review) {
+      const all = await Review.find({ productId: review.productId, approved: true });
+      const avg = all.length ? all.reduce((s,r) => s + r.rating, 0) / all.length : 4.5;
+      await Product.findByIdAndUpdate(review.productId, { rating: Math.round(avg*10)/10, reviewCount: all.length });
+    }
     res.json({ success: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });

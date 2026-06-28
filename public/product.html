@@ -49,6 +49,42 @@
   </div>
 </section>
 
+<!-- Customer Reviews Section -->
+<section class="section section-cream" id="reviews-section" style="display:none;padding-top:0">
+  <div class="container">
+    <div style="max-width:800px;margin:0 auto">
+      <h2 style="font-size:1.6rem;color:var(--primary-dark);margin-bottom:24px;display:flex;align-items:center;gap:10px">
+        ★ Customer Reviews <span id="reviews-count-badge" style="font-size:0.95rem;font-weight:400;color:#888"></span>
+      </h2>
+
+      <!-- Write a Review -->
+      <div style="background:white;border-radius:16px;border:1px solid var(--border);padding:24px;margin-bottom:28px">
+        <h3 style="font-size:1rem;font-weight:700;color:var(--primary-dark);margin-bottom:16px">Write a Review</h3>
+        <div id="review-alert"></div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Your Name *</label>
+          <input id="review-name" type="text" placeholder="Enter your name" style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;outline:none"/>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:8px">Rating *</label>
+          <div id="star-selector" style="display:flex;gap:6px">
+            ${[1,2,3,4,5].map(n=>`<span onclick="setRating(${n})" data-val="${n}" style="font-size:2rem;cursor:pointer;color:#ddd;transition:color 0.15s">★</span>`).join('')}
+          </div>
+          <input type="hidden" id="review-rating" value="0"/>
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:6px">Comment (optional)</label>
+          <textarea id="review-comment" rows="3" placeholder="Share your experience with this product..." style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;resize:vertical;outline:none;font-family:inherit"></textarea>
+        </div>
+        <button onclick="submitReview()" class="btn btn-primary" style="padding:10px 28px">Submit Review</button>
+      </div>
+
+      <!-- Reviews List -->
+      <div id="reviews-list"></div>
+    </div>
+  </div>
+</section>
+
 <!-- Related Products -->
 <section class="section section-white">
   <div class="container">
@@ -118,6 +154,7 @@
       currentProduct = data.product;
       renderProduct(data.product);
       loadRelated(data.product.category, id);
+      loadReviews();
     } catch(e) { showError(); }
   });
 
@@ -299,6 +336,73 @@
     document.getElementById('main-img').src = url;
     document.querySelectorAll('[onclick^="switchImg"]').forEach(el => el.style.border = '2px solid #ddd');
     thumb.style.border = '2px solid #c9a84c';
+  }
+
+  /* ── Reviews ── */
+  let selectedRating = 0;
+
+  function setRating(val) {
+    selectedRating = val;
+    document.getElementById('review-rating').value = val;
+    document.querySelectorAll('#star-selector span').forEach(s => {
+      s.style.color = parseInt(s.dataset.val) <= val ? '#c9a84c' : '#ddd';
+    });
+  }
+
+  async function loadReviews() {
+    if (!currentProduct) return;
+    const res = await fetch('/api/products/' + currentProduct.id + '/reviews');
+    const data = await res.json();
+    const reviews = data.reviews || [];
+    document.getElementById('reviews-section').style.display = '';
+    document.getElementById('reviews-count-badge').textContent = '(' + reviews.length + ' reviews)';
+    const list = document.getElementById('reviews-list');
+    if (!reviews.length) {
+      list.innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;background:white;border-radius:16px;border:1px solid var(--border)">No reviews yet. Be the first to review!</div>';
+      return;
+    }
+    list.innerHTML = reviews.map(r => {
+      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const date = new Date(r.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      return `<div style="background:white;border-radius:14px;border:1px solid var(--border);padding:18px 20px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem">${r.name.charAt(0).toUpperCase()}</div>
+            <div>
+              <div style="font-weight:700;font-size:0.92rem;color:var(--primary-dark)">${r.name}</div>
+              <div style="font-size:0.75rem;color:#aaa">${date}</div>
+            </div>
+          </div>
+          <div style="color:#c9a84c;font-size:1.1rem;letter-spacing:2px">${stars}</div>
+        </div>
+        ${r.comment ? `<p style="font-size:0.88rem;color:#555;margin:0;line-height:1.6">${r.comment}</p>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  async function submitReview() {
+    const name = document.getElementById('review-name').value.trim();
+    const rating = parseInt(document.getElementById('review-rating').value);
+    const comment = document.getElementById('review-comment').value.trim();
+    const alertDiv = document.getElementById('review-alert');
+    if (!name) { alertDiv.innerHTML = '<div style="color:#c62828;background:#fdecea;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:0.85rem">Please enter your name.</div>'; return; }
+    if (!rating) { alertDiv.innerHTML = '<div style="color:#c62828;background:#fdecea;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:0.85rem">Please select a rating.</div>'; return; }
+    const res = await fetch('/api/products/' + currentProduct.id + '/reviews', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name, rating, comment })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alertDiv.innerHTML = '<div style="color:#2e7d32;background:#e8f5e9;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:0.85rem">Thank you for your review!</div>';
+      document.getElementById('review-name').value = '';
+      document.getElementById('review-comment').value = '';
+      setRating(0);
+      selectedRating = 0;
+      await loadReviews();
+      setTimeout(() => alertDiv.innerHTML = '', 3000);
+    } else {
+      alertDiv.innerHTML = '<div style="color:#c62828;background:#fdecea;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:0.85rem">' + (data.error || 'Failed') + '</div>';
+    }
   }
 
   function openLightbox(src) {
