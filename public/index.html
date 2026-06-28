@@ -639,7 +639,7 @@
     try {
       const catRes = await fetch('/api/categories');
       const catData = await catRes.json();
-      const settings = window._siteSettings || {};
+      const settings = window._settings || {};
       const catImgs = settings.categoryImages || {};
       const grid = document.getElementById('categories-grid');
       const cats = catData.categories || [];
