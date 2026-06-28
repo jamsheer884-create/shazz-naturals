@@ -471,7 +471,15 @@ app.put('/api/categories/:name', requireAdmin, async (req, res) => {
     const idx = categories.findIndex(c => c.name === oldName);
     if (idx === -1) return res.status(404).json({ error: 'Category not found' });
     categories[idx] = { ...categories[idx], name: name.trim(), emoji: emoji || categories[idx].emoji, description: description ?? categories[idx].description };
-    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categories } }, { new: true, upsert: true });
+    // Migrate category image to new slug key
+    const oldKey = oldName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const newKey = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const catImgs = s.categoryImages || {};
+    if (oldKey !== newKey && catImgs[oldKey]) {
+      catImgs[newKey] = catImgs[oldKey];
+      delete catImgs[oldKey];
+    }
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categories, categoryImages: catImgs } }, { new: true, upsert: true });
     res.json({ success: true, categories });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -482,7 +490,11 @@ app.delete('/api/categories/:name', requireAdmin, async (req, res) => {
     const s = await Settings.findOne({ key: 'main' }).lean();
     let categories = (s && s.categories && s.categories.length) ? [...s.categories] : [...DEFAULT_CATEGORIES];
     categories = categories.filter(c => c.name !== name);
-    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categories } }, { new: true, upsert: true });
+    // Remove category image for deleted category
+    const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const catImgs = s.categoryImages || {};
+    delete catImgs[key];
+    await Settings.findOneAndUpdate({ key: 'main' }, { $set: { categories, categoryImages: catImgs } }, { new: true, upsert: true });
     res.json({ success: true, categories });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
