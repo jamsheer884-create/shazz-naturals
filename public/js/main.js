@@ -72,7 +72,9 @@ function applySettingsToPage(s) {
     document.querySelectorAll('.nav-logo-svg').forEach(el => { el.src = s.logo; });
     document.querySelectorAll('.site-logo, #site-logo').forEach(el => { el.src = s.logo; });
   }
-  // Update hero taglines (homepage only)
+  // Update tagline under logo on all pages
+  if (s.tagline) { document.querySelectorAll('.brand-sub').forEach(el => el.textContent = s.tagline); }
+  // Update hero lines (homepage only)
   if (s.heroLine1) { const el = document.getElementById('hero-line1'); if (el) el.textContent = s.heroLine1; }
   if (s.heroLine2) { const el = document.getElementById('hero-line2'); if (el) el.textContent = s.heroLine2; }
   if (s.heroLine3) { const el = document.getElementById('hero-line3'); if (el) el.textContent = s.heroLine3; }
