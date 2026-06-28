@@ -68,7 +68,11 @@
         <div style="margin-bottom:14px">
           <label style="font-size:0.85rem;font-weight:600;color:#555;display:block;margin-bottom:8px">Rating *</label>
           <div id="star-selector" style="display:flex;gap:6px">
-            ${[1,2,3,4,5].map(n=>`<span onclick="setRating(${n})" data-val="${n}" style="font-size:2rem;cursor:pointer;color:#ddd;transition:color 0.15s">★</span>`).join('')}
+            <span onclick="setRating(1)" data-val="1" style="font-size:2rem;cursor:pointer;color:#ddd;transition:color 0.15s">★</span>
+            <span onclick="setRating(2)" data-val="2" style="font-size:2rem;cursor:pointer;color:#ddd;transition:color 0.15s">★</span>
+            <span onclick="setRating(3)" data-val="3" style="font-size:2rem;cursor:pointer;color:#ddd;transition:color 0.15s">★</span>
+            <span onclick="setRating(4)" data-val="4" style="font-size:2rem;cursor:pointer;color:#ddd;transition:color 0.15s">★</span>
+            <span onclick="setRating(5)" data-val="5" style="font-size:2rem;cursor:pointer;color:#ddd;transition:color 0.15s">★</span>
           </div>
           <input type="hidden" id="review-rating" value="0"/>
         </div>
