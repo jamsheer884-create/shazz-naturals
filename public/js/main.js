@@ -48,10 +48,10 @@ function soundHeartbeat() {
 
 // Wire sounds to clicks after page loads
 document.addEventListener('DOMContentLoaded', () => {
-  // Dreamy Kiss — all buttons and nav links
+  // Heartbeat — all clicks
   document.addEventListener('click', e => {
     const el = e.target.closest('button, .btn, a.btn, [onclick], .category-card, .category-card-wrap, a[href]');
-    if (el) soundDreamyKiss();
+    if (el) soundHeartbeat();
   });
 });
 
