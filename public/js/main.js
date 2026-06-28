@@ -50,7 +50,7 @@ function soundHeartbeat() {
 document.addEventListener('DOMContentLoaded', () => {
   // Dreamy Kiss — all buttons and nav links
   document.addEventListener('click', e => {
-    const el = e.target.closest('button, .btn, a.btn, [onclick]');
+    const el = e.target.closest('button, .btn, a.btn, [onclick], .category-card, .category-card-wrap, a[href]');
     if (el) soundDreamyKiss();
   });
 });
