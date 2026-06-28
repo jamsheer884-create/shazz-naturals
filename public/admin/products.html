@@ -163,6 +163,15 @@
           <span style="font-size:0.8rem;color:#888">Upload new image above to replace</span>
         </div>
       </div>
+      <!-- Extra Images -->
+      <div class="adm-form-group" id="extra-imgs-wrap" style="display:none">
+        <label>Extra Images <span style="font-weight:400;color:#888;font-size:0.8rem">(shown as thumbnails on product page)</span></label>
+        <div id="extra-imgs-grid" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
+        <label class="adm-btn adm-btn-secondary adm-btn-sm" style="cursor:pointer;width:fit-content">
+          <i class="fa fa-plus"></i> Add Image
+          <input type="file" accept="image/*" style="display:none" onchange="uploadExtraImage(event)"/>
+        </label>
+      </div>
     </div>
     <div style="padding:16px 24px;border-top:1px solid #e0e0e0;display:flex;gap:10px;justify-content:flex-end">
       <button onclick="closeModal()" class="adm-btn adm-btn-outline">Cancel</button>
@@ -276,6 +285,7 @@
     document.getElementById('modal-title').textContent = 'Add New Product';
     clearForm();
     document.getElementById('current-img-wrap').style.display = 'none';
+    document.getElementById('extra-imgs-wrap').style.display = 'none';
     document.getElementById('product-modal').classList.remove('hidden');
   }
 
@@ -299,8 +309,48 @@
     // Show current image
     document.getElementById('current-img-wrap').style.display = 'flex';
     document.getElementById('current-img').src = p.image;
+    // Show extra images
+    document.getElementById('extra-imgs-wrap').style.display = 'block';
+    renderExtraImages(p.images || []);
     document.getElementById('modal-alert').innerHTML = '';
     document.getElementById('product-modal').classList.remove('hidden');
+  }
+
+  function renderExtraImages(imgs) {
+    const grid = document.getElementById('extra-imgs-grid');
+    grid.innerHTML = imgs.map(url => `
+      <div style="position:relative;width:72px;height:72px">
+        <img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #e0e0e0"/>
+        <button onclick="removeExtraImage('${url}')" style="position:absolute;top:-6px;right:-6px;background:#e53935;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>`).join('');
+  }
+
+  async function uploadExtraImage(e) {
+    const file = e.target.files[0];
+    if (!file || !editingId) return;
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch('/api/products/' + editingId + '/extra-image', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      const p = allProducts.find(x => x.id === editingId);
+      if (p) { p.images = data.images; renderExtraImages(data.images); }
+    }
+    e.target.value = '';
+  }
+
+  async function removeExtraImage(url) {
+    if (!editingId) return;
+    const res = await fetch('/api/products/' + editingId + '/extra-image', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    if (data.success) {
+      const p = allProducts.find(x => x.id === editingId);
+      if (p) { p.images = data.images; renderExtraImages(data.images); }
+    }
   }
 
   function openImageModal(id) {

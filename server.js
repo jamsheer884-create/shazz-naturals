@@ -50,6 +50,7 @@ const ProductSchema = new mongoose.Schema({
   benefits:      [String],
   weight:        { type: String, default: '' },
   image:         { type: String, default: '/images/placeholder.jpg' },
+  images:        [String],
   inStock:       { type: Boolean, default: true },
   featured:      { type: Boolean, default: false },
   badge:         { type: String, default: '' },
@@ -333,6 +334,25 @@ app.post('/api/products/:id/image', requireAdmin, upload.single('image'), async 
     const product = await Product.findByIdAndUpdate(req.params.id, { image: getImageUrl(req.file) }, { new: true });
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json({ success: true, image: product.image });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/products/:id/extra-image', requireAdmin, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+    const url = getImageUrl(req.file);
+    const product = await Product.findByIdAndUpdate(req.params.id, { $push: { images: url } }, { new: true });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json({ success: true, url, images: product.images });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/products/:id/extra-image', requireAdmin, async (req, res) => {
+  try {
+    const { url } = req.body;
+    const product = await Product.findByIdAndUpdate(req.params.id, { $pull: { images: url } }, { new: true });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json({ success: true, images: product.images });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

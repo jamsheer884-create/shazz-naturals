@@ -135,10 +135,15 @@
         </div>
         <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
           ${p.image && p.image !== '/images/placeholder.jpg' ? `
-            <div onclick="document.getElementById('main-img').src='${p.image}'"
+            <div onclick="switchImg('${p.image}', this)"
               style="width:70px;height:70px;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #c9a84c">
               <img src="${p.image}" style="width:100%;height:100%;object-fit:cover" alt="thumb">
             </div>` : ''}
+          ${(p.images || []).map(url => `
+            <div onclick="switchImg('${url}', this)"
+              style="width:70px;height:70px;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #ddd">
+              <img src="${url}" style="width:100%;height:100%;object-fit:cover" alt="thumb">
+            </div>`).join('')}
         </div>
       </div>
       <div class="product-detail-info">
@@ -282,6 +287,12 @@
       return;
     }
     container.innerHTML = related.map(p => renderProductCard(p)).join('');
+  }
+
+  function switchImg(url, thumb) {
+    document.getElementById('main-img').src = url;
+    document.querySelectorAll('[onclick^="switchImg"]').forEach(el => el.style.border = '2px solid #ddd');
+    thumb.style.border = '2px solid #c9a84c';
   }
 </script>
 </body>
