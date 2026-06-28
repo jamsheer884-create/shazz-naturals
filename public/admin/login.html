@@ -177,33 +177,49 @@
 
   <!-- Kerala bottom landscape -->
   <div class="kerala-bottom">
-    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;left:0;width:100%;height:100%">
-      <!-- Water -->
-      <ellipse cx="720" cy="210" rx="900" ry="30" fill="rgba(10,40,15,0.6)"/>
-      <!-- Hills -->
-      <path d="M0,180 Q180,100 360,150 Q540,200 720,130 Q900,60 1080,140 Q1260,200 1440,160 L1440,220 L0,220Z" fill="rgba(8,28,10,0.7)"/>
-      <path d="M0,200 Q200,160 400,180 Q600,200 800,170 Q1000,140 1200,185 Q1350,205 1440,190 L1440,220 L0,220Z" fill="rgba(6,20,8,0.85)"/>
-      <!-- Left coconut tree -->
-      <g style="animation:treeWave 4s ease-in-out infinite">
-        <rect x="68" y="80" width="8" height="130" rx="4" fill="#0d2e0d"/>
-        <path d="M72,85 Q50,55 20,45 Q45,60 55,80Z" fill="#1a4a1a"/>
-        <path d="M72,85 Q95,50 125,42 Q100,58 88,78Z" fill="#1a4a1a"/>
-        <path d="M72,85 Q40,75 10,85 Q38,82 58,90Z" fill="#1b521b"/>
-        <path d="M72,85 Q105,73 135,82 Q107,80 90,90Z" fill="#1b521b"/>
-        <path d="M72,85 Q55,65 35,55 Q55,70 62,88Z" fill="#1a4a1a"/>
-        <path d="M72,85 Q90,65 110,56 Q90,72 82,88Z" fill="#1a4a1a"/>
-        <ellipse cx="72" cy="80" rx="7" ry="7" fill="#2d6a2d"/>
+    <svg viewBox="0 0 1440 220" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;left:0;width:100%;height:100%">
+      <!-- Background hills -->
+      <path d="M0,175 Q240,125 480,162 Q720,198 960,145 Q1200,95 1440,155 L1440,220 L0,220Z" fill="rgba(8,28,10,0.72)"/>
+      <path d="M0,198 Q360,168 720,183 Q1080,198 1440,193 L1440,220 L0,220Z" fill="rgba(5,15,7,0.9)"/>
+
+      <!-- LEFT PALM TREE — crown at (100,38), base at (108,218) -->
+      <g style="transform-origin:108px 218px;animation:treeWave 4.5s ease-in-out infinite">
+        <!-- Tapered curved trunk -->
+        <path d="M104,218 C100,182 97,148 96,112 C95,78 95,58 97,38 L103,38 C105,58 105,78 106,112 C107,148 110,182 112,218Z" fill="#0b2210"/>
+        <!-- Crown cluster -->
+        <circle cx="100" cy="38" r="7" fill="#163a16"/>
+        <!-- Frond 1: upper-left long drooping -->
+        <path d="M100,38 C78,14 48,0 13,2 C42,16 72,30 100,38Z" fill="#1a4a1c"/>
+        <!-- Frond 2: top vertical -->
+        <path d="M100,38 C107,18 106,-5 97,-22 C90,-5 91,18 100,38Z" fill="#1a4a1c"/>
+        <!-- Frond 3: upper-right long drooping -->
+        <path d="M100,38 C122,14 152,0 180,2 C152,16 122,30 100,38Z" fill="#1a4a1c"/>
+        <!-- Frond 4: left side drooping down -->
+        <path d="M100,38 C73,48 43,55 17,70 C43,52 73,44 100,38Z" fill="#1a4a1c"/>
+        <!-- Frond 5: right side drooping down -->
+        <path d="M100,38 C127,48 157,55 183,70 C157,52 127,44 100,38Z" fill="#1a4a1c"/>
+        <!-- Frond 6: lower-left hanging -->
+        <path d="M100,38 C85,58 69,80 57,102 C69,78 85,56 100,38Z" fill="#1a4a1c"/>
+        <!-- Frond 7: lower-right hanging -->
+        <path d="M100,38 C115,58 131,80 143,102 C131,78 115,56 100,38Z" fill="#1a4a1c"/>
+        <!-- Frond 8: upper-left 2 -->
+        <path d="M100,38 C83,22 63,5 45,-10 C63,8 83,24 100,38Z" fill="#1a4a1c"/>
       </g>
-      <!-- Right coconut tree -->
-      <g style="animation:treeWave2 5s ease-in-out infinite">
-        <rect x="1364" y="60" width="8" height="150" rx="4" fill="#0d2e0d"/>
-        <path d="M1368,65 Q1345,35 1315,25 Q1340,40 1350,60Z" fill="#1a4a1a"/>
-        <path d="M1368,65 Q1392,30 1422,22 Q1397,38 1384,58Z" fill="#1a4a1a"/>
-        <path d="M1368,65 Q1335,55 1305,65 Q1333,62 1353,70Z" fill="#1b521b"/>
-        <path d="M1368,65 Q1402,53 1432,62 Q1404,60 1386,70Z" fill="#1b521b"/>
-        <path d="M1368,65 Q1350,45 1330,35 Q1350,50 1358,68Z" fill="#1a4a1a"/>
-        <path d="M1368,65 Q1386,45 1406,36 Q1386,52 1378,68Z" fill="#1a4a1a"/>
-        <ellipse cx="1368" cy="60" rx="7" ry="7" fill="#2d6a2d"/>
+
+      <!-- RIGHT PALM TREE — crown at (1340,38), base at (1332,218) -->
+      <g style="transform-origin:1332px 218px;animation:treeWave2 5.5s ease-in-out infinite">
+        <!-- Trunk -->
+        <path d="M1328,218 C1332,182 1335,148 1336,112 C1337,78 1337,58 1338,38 L1344,38 C1345,58 1345,78 1346,112 C1347,148 1348,182 1352,218Z" fill="#0b2210"/>
+        <circle cx="1341" cy="38" r="7" fill="#163a16"/>
+        <!-- Fronds mirrored -->
+        <path d="M1341,38 C1363,14 1393,0 1428,2 C1399,16 1369,30 1341,38Z" fill="#1a4a1c"/>
+        <path d="M1341,38 C1334,18 1335,-5 1344,-22 C1351,-5 1350,18 1341,38Z" fill="#1a4a1c"/>
+        <path d="M1341,38 C1319,14 1289,0 1261,2 C1289,16 1319,30 1341,38Z" fill="#1a4a1c"/>
+        <path d="M1341,38 C1368,48 1398,55 1424,70 C1398,52 1368,44 1341,38Z" fill="#1a4a1c"/>
+        <path d="M1341,38 C1314,48 1284,55 1258,70 C1284,52 1314,44 1341,38Z" fill="#1a4a1c"/>
+        <path d="M1341,38 C1356,58 1372,80 1384,102 C1372,78 1356,56 1341,38Z" fill="#1a4a1c"/>
+        <path d="M1341,38 C1326,58 1310,80 1298,102 C1310,78 1326,56 1341,38Z" fill="#1a4a1c"/>
+        <path d="M1341,38 C1358,22 1378,5 1396,-10 C1378,8 1358,24 1341,38Z" fill="#1a4a1c"/>
       </g>
     </svg>
     <div class="water-strip"></div>
