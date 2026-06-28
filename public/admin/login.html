@@ -7,27 +7,6 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    @keyframes orbDrift1 {
-      0%,100% { transform: translate(0px, 0px) scale(1); }
-      25%      { transform: translate(40px, -30px) scale(1.08); }
-      50%      { transform: translate(-20px, 50px) scale(0.95); }
-      75%      { transform: translate(30px, 20px) scale(1.05); }
-    }
-    @keyframes orbDrift2 {
-      0%,100% { transform: translate(0px, 0px) scale(1); }
-      30%      { transform: translate(-50px, 40px) scale(1.1); }
-      60%      { transform: translate(30px, -60px) scale(0.9); }
-    }
-    @keyframes orbDrift3 {
-      0%,100% { transform: translate(0px, 0px) scale(1); }
-      40%      { transform: translate(60px, 30px) scale(1.12); }
-      80%      { transform: translate(-40px, -20px) scale(0.92); }
-    }
-    @keyframes orbDrift4 {
-      0%,100% { transform: translate(0px, 0px) scale(1); }
-      35%      { transform: translate(-30px, -50px) scale(1.06); }
-      70%      { transform: translate(50px, 40px) scale(0.94); }
-    }
     @keyframes cardIn {
       from { opacity: 0; transform: translateY(30px) scale(0.97); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -40,6 +19,18 @@
       0%   { background-position: -200% center; }
       100% { background-position: 200% center; }
     }
+    @keyframes treeWave {
+      0%,100% { transform: rotate(0deg); transform-origin: bottom center; }
+      50%      { transform: rotate(2deg); transform-origin: bottom center; }
+    }
+    @keyframes treeWave2 {
+      0%,100% { transform: rotate(0deg); transform-origin: bottom center; }
+      50%      { transform: rotate(-2.5deg); transform-origin: bottom center; }
+    }
+    @keyframes ripple {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
 
     body { min-height: 100vh; }
 
@@ -48,54 +39,56 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #071a07 0%, #0d3319 40%, #0f4020 70%, #071a07 100%);
+      background: radial-gradient(ellipse at 20% 50%, #0a2e0a 0%, #071a07 40%, #050f05 100%);
       position: relative;
       overflow: hidden;
     }
 
-    /* Large blurred orbs like TrueBooks style */
-    .orb {
+    /* Canvas for particles */
+    #bg-canvas {
       position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
+      inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Bottom Kerala landscape */
+    .kerala-bottom {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 220px;
+      z-index: 2;
       pointer-events: none;
     }
-    .orb-1 {
-      width: 420px; height: 420px;
-      background: radial-gradient(circle, rgba(56,142,60,0.35) 0%, rgba(27,94,32,0.1) 70%, transparent 100%);
-      top: -80px; left: -80px;
-      animation: orbDrift1 14s ease-in-out infinite;
+
+    /* Water ripple at base */
+    .water-strip {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 200%; height: 38px;
+      background: repeating-linear-gradient(90deg,
+        rgba(13,51,26,0.0) 0%, rgba(30,100,50,0.18) 10%,
+        rgba(13,51,26,0.0) 20%);
+      animation: ripple 8s linear infinite;
+      z-index: 3;
     }
-    .orb-2 {
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(76,175,80,0.22) 0%, rgba(46,125,50,0.08) 70%, transparent 100%);
-      bottom: -120px; right: -100px;
-      animation: orbDrift2 18s ease-in-out infinite;
-    }
-    .orb-3 {
-      width: 320px; height: 320px;
-      background: radial-gradient(circle, rgba(139,195,74,0.20) 0%, rgba(104,159,56,0.06) 70%, transparent 100%);
-      top: 50%; left: -60px;
-      transform: translateY(-50%);
-      animation: orbDrift3 22s ease-in-out infinite;
-    }
-    .orb-4 {
-      width: 380px; height: 380px;
-      background: radial-gradient(circle, rgba(56,142,60,0.25) 0%, rgba(27,94,32,0.08) 70%, transparent 100%);
-      top: 20%; right: -80px;
-      animation: orbDrift4 16s ease-in-out infinite;
-    }
-    .orb-5 {
-      width: 260px; height: 260px;
-      background: radial-gradient(circle, rgba(174,213,129,0.15) 0%, transparent 70%);
-      bottom: 15%; left: 20%;
-      animation: orbDrift1 20s ease-in-out infinite reverse;
+
+    /* Subtle golden top glow */
+    .top-glow {
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 200px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
     }
 
     /* Card */
     .adm-login-card {
       position: relative;
-      z-index: 10;
+      z-index: 10;  /* above canvas(1) and kerala(2) */
       background: rgba(255,255,255,0.96);
       border-radius: 24px;
       box-shadow:
@@ -179,12 +172,42 @@
 </head>
 <body>
 <div class="adm-login-page">
-  <!-- Background orbs -->
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="orb orb-4"></div>
-  <div class="orb orb-5"></div>
+  <div class="top-glow"></div>
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Kerala bottom landscape -->
+  <div class="kerala-bottom">
+    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;left:0;width:100%;height:100%">
+      <!-- Water -->
+      <ellipse cx="720" cy="210" rx="900" ry="30" fill="rgba(10,40,15,0.6)"/>
+      <!-- Hills -->
+      <path d="M0,180 Q180,100 360,150 Q540,200 720,130 Q900,60 1080,140 Q1260,200 1440,160 L1440,220 L0,220Z" fill="rgba(8,28,10,0.7)"/>
+      <path d="M0,200 Q200,160 400,180 Q600,200 800,170 Q1000,140 1200,185 Q1350,205 1440,190 L1440,220 L0,220Z" fill="rgba(6,20,8,0.85)"/>
+      <!-- Left coconut tree -->
+      <g style="animation:treeWave 4s ease-in-out infinite">
+        <rect x="68" y="80" width="8" height="130" rx="4" fill="#0d2e0d"/>
+        <path d="M72,85 Q50,55 20,45 Q45,60 55,80Z" fill="#1a4a1a"/>
+        <path d="M72,85 Q95,50 125,42 Q100,58 88,78Z" fill="#1a4a1a"/>
+        <path d="M72,85 Q40,75 10,85 Q38,82 58,90Z" fill="#1b521b"/>
+        <path d="M72,85 Q105,73 135,82 Q107,80 90,90Z" fill="#1b521b"/>
+        <path d="M72,85 Q55,65 35,55 Q55,70 62,88Z" fill="#1a4a1a"/>
+        <path d="M72,85 Q90,65 110,56 Q90,72 82,88Z" fill="#1a4a1a"/>
+        <ellipse cx="72" cy="80" rx="7" ry="7" fill="#2d6a2d"/>
+      </g>
+      <!-- Right coconut tree -->
+      <g style="animation:treeWave2 5s ease-in-out infinite">
+        <rect x="1364" y="60" width="8" height="150" rx="4" fill="#0d2e0d"/>
+        <path d="M1368,65 Q1345,35 1315,25 Q1340,40 1350,60Z" fill="#1a4a1a"/>
+        <path d="M1368,65 Q1392,30 1422,22 Q1397,38 1384,58Z" fill="#1a4a1a"/>
+        <path d="M1368,65 Q1335,55 1305,65 Q1333,62 1353,70Z" fill="#1b521b"/>
+        <path d="M1368,65 Q1402,53 1432,62 Q1404,60 1386,70Z" fill="#1b521b"/>
+        <path d="M1368,65 Q1350,45 1330,35 Q1350,50 1358,68Z" fill="#1a4a1a"/>
+        <path d="M1368,65 Q1386,45 1406,36 Q1386,52 1378,68Z" fill="#1a4a1a"/>
+        <ellipse cx="1368" cy="60" rx="7" ry="7" fill="#2d6a2d"/>
+      </g>
+    </svg>
+    <div class="water-strip"></div>
+  </div>
 
   <div class="adm-login-card">
     <div class="adm-login-logo">
@@ -211,6 +234,110 @@
   </div>
 </div>
 <script>
+  /* ── Kerala background canvas: floating leaves + gold sparkles ── */
+  (function() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const LEAF_COLORS = ['#2e7d32','#388e3c','#43a047','#66bb6a','#81c784','#a5d6a7'];
+    const GOLD_COLORS = ['#c9a84c','#d4ac0d','#ffd54f','#ffca28','#ffe082'];
+
+    class Leaf {
+      constructor(initial) {
+        this.x = Math.random() * canvas.width;
+        this.y = initial ? Math.random() * canvas.height : canvas.height + 20;
+        this.size = 7 + Math.random() * 14;
+        this.vy = -(0.25 + Math.random() * 0.5);
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.rot = Math.random() * Math.PI * 2;
+        this.rotV = (Math.random() - 0.5) * 0.018;
+        this.alpha = 0.12 + Math.random() * 0.28;
+        this.color = LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)];
+        this.sw = Math.random() * Math.PI * 2;
+        this.swS = 0.007 + Math.random() * 0.01;
+        this.swA = 0.4 + Math.random() * 1.2;
+      }
+      update() {
+        this.sw += this.swS;
+        this.x += Math.sin(this.sw) * this.swA + this.vx;
+        this.y += this.vy;
+        this.rot += this.rotV;
+        if (this.y < -30) { this.x = Math.random() * canvas.width; this.y = canvas.height + 20; }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rot);
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.moveTo(0, -this.size);
+        ctx.bezierCurveTo(this.size*0.7,-this.size*0.4, this.size*0.7,this.size*0.4, 0, this.size);
+        ctx.bezierCurveTo(-this.size*0.7,this.size*0.4, -this.size*0.7,-this.size*0.4, 0, -this.size);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 0.6;
+        ctx.beginPath(); ctx.moveTo(0,-this.size); ctx.lineTo(0,this.size); ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    class Sparkle {
+      constructor(initial) {
+        this.x = Math.random() * canvas.width;
+        this.y = initial ? Math.random() * canvas.height : canvas.height + 10;
+        this.size = 1.5 + Math.random() * 2.5;
+        this.vy = -(0.15 + Math.random() * 0.4);
+        this.vx = (Math.random() - 0.5) * 0.25;
+        this.life = 0;
+        this.maxLife = 120 + Math.random() * 180;
+        this.alpha = 0;
+        this.maxAlpha = 0.5 + Math.random() * 0.5;
+        this.color = GOLD_COLORS[Math.floor(Math.random() * GOLD_COLORS.length)];
+        this.pulse = Math.random() * Math.PI * 2;
+        this.pulseS = 0.04 + Math.random() * 0.06;
+      }
+      update() {
+        this.life++; this.pulse += this.pulseS;
+        this.x += this.vx; this.y += this.vy;
+        const t = this.life / this.maxLife;
+        if (t < 0.25) this.alpha = (t / 0.25) * this.maxAlpha;
+        else if (t > 0.65) this.alpha = ((1 - t) / 0.35) * this.maxAlpha;
+        else this.alpha = this.maxAlpha * (0.75 + 0.25 * Math.sin(this.pulse));
+        if (this.life >= this.maxLife || this.y < -10) {
+          this.x = Math.random() * canvas.width; this.y = canvas.height + 10;
+          this.life = 0; this.alpha = 0;
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha * 0.35;
+        const g = ctx.createRadialGradient(this.x,this.y,0, this.x,this.y,this.size*5);
+        g.addColorStop(0, this.color); g.addColorStop(1,'transparent');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(this.x,this.y,this.size*5,0,Math.PI*2); ctx.fill();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(this.x,this.y,this.size*0.6,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    const particles = [];
+    for (let i = 0; i < 22; i++) particles.push(new Leaf(true));
+    for (let i = 0; i < 35; i++) particles.push(new Sparkle(true));
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
+
   document.addEventListener('DOMContentLoaded', async () => {
     const me = await fetch('/api/auth/me').then(r => r.json());
     if (me.user?.role === 'admin') window.location.href = '/admin/dashboard.html';
