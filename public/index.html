@@ -650,11 +650,14 @@
           const icon = img
             ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"/>`
             : c.emoji || '🌿';
-          return `<a href="/products.html?category=${encodeURIComponent(c.name)}" class="category-card">
-            <div class="category-icon">${icon}</div>
-            <div class="category-name">${c.name}</div>
-            <div class="category-count">${c.description || ''}</div>
-          </a>`;
+          return `<div class="category-card-wrap" onmousemove="_tiltCat(this,event)" onmouseleave="_resetCat(this)">
+            <a href="/products.html?category=${encodeURIComponent(c.name)}" class="category-card">
+              <div class="cat-shine"></div>
+              <div class="category-icon">${icon}</div>
+              <div class="category-name">${c.name}</div>
+              <div class="category-count">${c.description || ''}</div>
+            </a>
+          </div>`;
         }).join('');
       }
     } catch(e) {}
@@ -680,6 +683,26 @@
     if (!e || e.target === document.getElementById('mobile-nav') || !e.currentTarget) {
       document.getElementById('mobile-nav').classList.remove('open');
     }
+  }
+
+  function _tiltCat(wrap, e) {
+    const card = wrap.querySelector('.category-card');
+    const shine = wrap.querySelector('.cat-shine');
+    const rect = wrap.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    const cx = rect.width / 2, cy = rect.height / 2;
+    const rotX = ((y - cy) / cy) * -16;
+    const rotY = ((x - cx) / cx) * 16;
+    card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.06,1.06,1.06)`;
+    card.style.boxShadow = `${-rotY}px ${rotX}px 30px rgba(27,94,32,0.18)`;
+    if (shine) shine.style.background = `radial-gradient(circle at ${(x/rect.width)*100}% ${(y/rect.height)*100}%, rgba(255,255,255,0.45) 0%, transparent 60%)`;
+  }
+  function _resetCat(wrap) {
+    const card = wrap.querySelector('.category-card');
+    card.style.transition = 'transform 0.5s ease, box-shadow 0.5s ease, border-color 0.3s, background 0.3s';
+    card.style.transform = 'rotateX(0) rotateY(0) scale3d(1,1,1)';
+    card.style.boxShadow = '';
+    setTimeout(() => { card.style.transition = 'transform 0.1s ease, box-shadow 0.1s ease, border-color 0.3s, background 0.3s'; }, 500);
   }
 </script>
 </body>
