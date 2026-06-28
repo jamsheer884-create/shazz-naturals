@@ -222,15 +222,12 @@
     document.getElementById('edit-emoji').value = cat.emoji || '';
     document.getElementById('edit-desc').value = cat.description || '';
     document.getElementById('edit-alert').innerHTML = '';
-    document.getElementById('edit-img-input').value = '';
-    document.getElementById('clear-img-btn').style.display = 'none';
 
     const key = getCatKey(cat.name);
     const img = (siteSettings.categoryImages || {})[key];
     const preview = document.getElementById('edit-icon-preview');
     if (img) {
       preview.innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:cover"/>`;
-      document.getElementById('clear-img-btn').style.display = 'inline-flex';
     } else {
       preview.textContent = cat.emoji || '🌿';
     }
@@ -249,24 +246,6 @@
     document.getElementById('edit-icon-preview').textContent = val || '🌿';
   }
 
-  function previewEditImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    editImageFile = file;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      document.getElementById('edit-icon-preview').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;
-      document.getElementById('clear-img-btn').style.display = 'inline-flex';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function clearEditImage() {
-    editImageFile = null;
-    document.getElementById('edit-img-input').value = '';
-    document.getElementById('clear-img-btn').style.display = 'none';
-    document.getElementById('edit-icon-preview').textContent = document.getElementById('edit-emoji').value || '🌿';
-  }
 
   async function saveEdit() {
     const btn = document.getElementById('save-edit-btn');
@@ -281,18 +260,6 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="adm-spinner"></span> Saving...';
 
-    // Upload image if selected
-    if (editImageFile) {
-      const newKey = getCatKey(name);
-      const fd = new FormData();
-      fd.append('categoryImage', editImageFile);
-      const imgRes = await fetch('/api/settings/category-image/' + newKey, { method: 'POST', body: fd });
-      const imgData = await imgRes.json();
-      if (imgData.success) {
-        if (!siteSettings.categoryImages) siteSettings.categoryImages = {};
-        siteSettings.categoryImages[newKey] = imgData.url;
-      }
-    }
 
     // Save category data
     const res = await fetch('/api/categories/' + encodeURIComponent(editTarget), {
