@@ -6,6 +6,55 @@
 // ─── Settings Cache ───
 window._settings = {};
 
+// ─── Sound Effects ───
+function _getAC() { return new (window.AudioContext || window.webkitAudioContext)(); }
+
+function soundDreamyKiss() {
+  try {
+    const a = _getAC();
+    const osc = a.createOscillator();
+    const gain = a.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, a.currentTime);
+    osc.frequency.linearRampToValueAtTime(520, a.currentTime + 0.08);
+    osc.frequency.linearRampToValueAtTime(440, a.currentTime + 0.18);
+    gain.gain.setValueAtTime(0, a.currentTime);
+    gain.gain.linearRampToValueAtTime(0.28, a.currentTime + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 0.25);
+    osc.connect(gain); gain.connect(a.destination);
+    osc.start(); osc.stop(a.currentTime + 0.25);
+  } catch(e) {}
+}
+
+function soundHeartbeat() {
+  try {
+    function thump(delay) {
+      const a = _getAC();
+      const osc = a.createOscillator();
+      const gain = a.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(80, a.currentTime + delay);
+      osc.frequency.exponentialRampToValueAtTime(40, a.currentTime + delay + 0.1);
+      gain.gain.setValueAtTime(0, a.currentTime + delay);
+      gain.gain.linearRampToValueAtTime(0.45, a.currentTime + delay + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, a.currentTime + delay + 0.15);
+      osc.connect(gain); gain.connect(a.destination);
+      osc.start(a.currentTime + delay);
+      osc.stop(a.currentTime + delay + 0.15);
+    }
+    thump(0); thump(0.18);
+  } catch(e) {}
+}
+
+// Wire sounds to clicks after page loads
+document.addEventListener('DOMContentLoaded', () => {
+  // Dreamy Kiss — all buttons and nav links
+  document.addEventListener('click', e => {
+    const el = e.target.closest('button, .btn, a.btn, [onclick]');
+    if (el) soundDreamyKiss();
+  });
+});
+
 async function loadSettings() {
   try {
     const data = await fetch('/api/settings').then(r => r.json());
@@ -110,6 +159,7 @@ async function addToCart(productId, event) {
     });
     const data = await res.json();
     if (data.success) {
+      soundHeartbeat();
       showToast('Added to cart! 🛒', 'cart');
       updateCartBadge();
       if (btn) {
