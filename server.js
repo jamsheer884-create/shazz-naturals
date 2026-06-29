@@ -928,9 +928,8 @@ app.post('/api/popup-register', async (req, res) => {
 
     const existing = await User.findOne({ $or: [{ email: emailToUse }, { phone: mobile.trim() }] });
     if (existing) {
-      // already registered — log them in
-      req.session.userId = existing._id;
-      return res.json({ success: true, alreadyExists: true });
+      req.session.user = { id: existing._id.toString(), role: 'customer', name: existing.name, email: existing.email };
+      return req.session.save(() => res.json({ success: true, alreadyExists: true }));
     }
 
     const user = await User.create({
@@ -940,8 +939,8 @@ app.post('/api/popup-register', async (req, res) => {
       password: bcrypt.hashSync(password, 10),
     });
 
-    req.session.userId = user._id;
-    res.json({ success: true });
+    req.session.user = { id: user._id.toString(), role: 'customer', name: user.name, email: user.email };
+    req.session.save(() => res.json({ success: true }));
   } catch(e) {
     console.error('Popup register error:', e.message);
     res.json({ success: false, error: e.message });
