@@ -722,7 +722,10 @@
       <h3 style="font-size:0.88rem;color:#1b5e20;font-weight:700;margin-bottom:10px;text-align:center;">Register to Claim Your Discount</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
         <input id="popup-name" type="text" placeholder="Full Name" style="padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;outline:none;font-family:inherit;color:#333;background:#fafafa;width:100%;"/>
-        <input id="popup-mobile" type="tel" placeholder="Mobile" style="padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;outline:none;font-family:inherit;color:#333;background:#fafafa;width:100%;"/>
+        <div style="display:flex;align-items:center;border:1.5px solid #eee;border-radius:10px;background:#fafafa;overflow:hidden;">
+          <span style="padding:9px 8px;font-size:0.82rem;color:#333;border-right:1px solid #eee;white-space:nowrap;">🇮🇳 +91</span>
+          <input id="popup-mobile" type="tel" placeholder="Mobile" style="padding:9px 8px;border:none;outline:none;font-family:inherit;color:#333;background:transparent;width:100%;font-size:0.82rem;"/>
+        </div>
       </div>
       <input id="popup-email" type="email" placeholder="Email Address" style="width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
       <input id="popup-address" type="text" placeholder="Delivery Address" style="width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
@@ -751,7 +754,8 @@
 
   async function submitPopup() {
     const name    = document.getElementById('popup-name').value.trim();
-    const mobile  = document.getElementById('popup-mobile').value.trim();
+    const mobileRaw = document.getElementById('popup-mobile').value.trim().replace(/^0+/, '');
+    const mobile = mobileRaw.startsWith('+91') ? mobileRaw : '+91' + mobileRaw;
     const email   = document.getElementById('popup-email').value.trim();
     const address = document.getElementById('popup-address').value.trim();
     const pincode = document.getElementById('popup-pincode').value.trim();
