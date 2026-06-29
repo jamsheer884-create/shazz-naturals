@@ -740,7 +740,8 @@
 </style>
 <script>
   (function(){
-    if (localStorage.getItem('szPopupDone')) return;
+    var force = new URLSearchParams(window.location.search).get('popup');
+    if (!force && localStorage.getItem('szPopupDone')) return;
     setTimeout(function(){
       var o = document.getElementById('welcome-popup-overlay');
       o.style.display = 'flex';
