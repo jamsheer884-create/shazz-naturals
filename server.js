@@ -921,26 +921,23 @@ app.get('*', (req, res) => {
 
 app.post('/api/popup-register', async (req, res) => {
   try {
-    const { name, mobile, email, address, pincode } = req.body;
-    if (!name || !mobile) return res.json({ success: false, error: 'Name and mobile required' });
+    const { name, mobile, email, password } = req.body;
+    if (!name || !mobile || !password) return res.json({ success: false, error: 'Name, mobile and password required' });
 
-    const emailToUse = email && email.trim() ? email.toLowerCase().trim() : `${mobile.trim()}@shazznaturals.app`;
+    const emailToUse = email && email.trim() ? email.toLowerCase().trim() : `${mobile.trim().replace(/\+/g,'')}@shazznaturals.app`;
 
     const existing = await User.findOne({ $or: [{ email: emailToUse }, { phone: mobile.trim() }] });
     if (existing) {
-      // already a customer — just log them in via session
+      // already registered — log them in
       req.session.userId = existing._id;
       return res.json({ success: true, alreadyExists: true });
     }
 
-    const tempPassword = Math.random().toString(36).slice(-8);
     const user = await User.create({
       name: name.trim(),
       email: emailToUse,
       phone: mobile.trim(),
-      password: bcrypt.hashSync(tempPassword, 10),
-      address: address || '',
-      pincode: pincode || '',
+      password: bcrypt.hashSync(password, 10),
     });
 
     req.session.userId = user._id;

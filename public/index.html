@@ -743,9 +743,8 @@
         </div>
       </div>
       <input id="popup-email" type="email" placeholder="Email Address" style="width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
-      <input id="popup-address" type="text" placeholder="Delivery Address" style="width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
-      <input id="popup-pincode" type="text" placeholder="Pincode" style="width:120px;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
-      <button onclick="submitPopup()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0d1f0d,#1b5e20);color:white;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);">🎉 Claim My 10% Discount</button>
+      <input id="popup-password" type="password" placeholder="Create Password" style="width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
+      <button onclick="submitPopup()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0d1f0d,#1b5e20);color:white;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);">🎉 Sign Up & Claim 10% OFF</button>
       <div onclick="closePopup()" style="text-align:center;margin-top:8px;font-size:0.65rem;color:#aaa;cursor:pointer;">No thanks, I'll pay full price</div>
     </div>
   </div>
@@ -773,17 +772,19 @@
     const code = document.getElementById('popup-code').value;
     const mobileRaw = document.getElementById('popup-mobile').value.trim().replace(/^0+/, '');
     const mobile = mobileRaw.startsWith('+') ? mobileRaw : code + mobileRaw;
-    const email   = document.getElementById('popup-email').value.trim();
-    const address = document.getElementById('popup-address').value.trim();
-    const pincode = document.getElementById('popup-pincode').value.trim();
+    const email    = document.getElementById('popup-email').value.trim();
+    const password = document.getElementById('popup-password').value.trim();
     if (!name || !mobile) { alert('Please enter your name and mobile.'); return; }
-    await fetch('/api/popup-register', {
+    if (!password || password.length < 6) { alert('Please create a password (min 6 characters).'); return; }
+    const res = await fetch('/api/popup-register', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name, mobile, email, address, pincode })
+      body: JSON.stringify({ name, mobile, email, password })
     });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || 'Registration failed. Try again.'); return; }
     localStorage.setItem('szPopupDone','1');
-    document.getElementById('welcome-popup').innerHTML = '<div style="padding:40px;text-align:center;background:white;"><div style="font-size:2rem;margin-bottom:10px;">🎉</div><div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:6px;">You\'re registered!</div><div style="font-size:0.85rem;color:#666;">Your 10% discount will be applied automatically on your first order.</div><button onclick="closePopup()" style="margin-top:18px;padding:10px 28px;background:#1b5e20;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:700;">Shop Now</button></div>';
+    document.getElementById('welcome-popup').innerHTML = '<div style="padding:40px;text-align:center;background:white;"><div style="font-size:2rem;margin-bottom:10px;">🎉</div><div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:6px;">You\'re registered!</div><div style="font-size:0.85rem;color:#666;">Your 10% discount is ready. Shop now to claim it!</div><button onclick="closePopup();location.reload();" style="margin-top:18px;padding:10px 28px;background:#1b5e20;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:700;">Shop Now</button></div>';
   }
 </script>
 </body>
