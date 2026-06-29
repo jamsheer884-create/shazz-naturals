@@ -63,6 +63,8 @@ const UserSchema = new mongoose.Schema({
   email:     { type: String, required: true, unique: true, lowercase: true },
   phone:     { type: String, default: '' },
   password:  { type: String, required: true },
+  address:   { type: String, default: '' },
+  pincode:   { type: String, default: '' },
 }, { timestamps: true });
 
 const OrderSchema = new mongoose.Schema({
@@ -915,6 +917,38 @@ app.get('/api/admin/sales-report', requireAdmin, async (req, res) => {
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) res.sendFile(path.join(__dirname, 'public', 'index.html'));
   else res.status(404).json({ error: 'Not found' });
+});
+
+app.post('/api/popup-register', async (req, res) => {
+  try {
+    const { name, mobile, email, address, pincode } = req.body;
+    if (!name || !mobile) return res.json({ success: false, error: 'Name and mobile required' });
+
+    const emailToUse = email && email.trim() ? email.toLowerCase().trim() : `${mobile.trim()}@shazznaturals.app`;
+
+    const existing = await User.findOne({ $or: [{ email: emailToUse }, { phone: mobile.trim() }] });
+    if (existing) {
+      // already a customer — just log them in via session
+      req.session.userId = existing._id;
+      return res.json({ success: true, alreadyExists: true });
+    }
+
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const user = await User.create({
+      name: name.trim(),
+      email: emailToUse,
+      phone: mobile.trim(),
+      password: bcrypt.hashSync(tempPassword, 10),
+      address: address || '',
+      pincode: pincode || '',
+    });
+
+    req.session.userId = user._id;
+    res.json({ success: true });
+  } catch(e) {
+    console.error('Popup register error:', e.message);
+    res.json({ success: false, error: e.message });
+  }
 });
 
 app.listen(PORT, () => {

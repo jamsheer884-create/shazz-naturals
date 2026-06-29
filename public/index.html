@@ -705,5 +705,65 @@
     setTimeout(() => { card.style.transition = 'transform 0.1s ease, box-shadow 0.1s ease, border-color 0.3s, background 0.3s'; }, 500);
   }
 </script>
+
+<!-- ═══ WELCOME POPUP ═══ -->
+<div id="welcome-popup-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div id="welcome-popup" style="width:370px;max-width:100%;border-radius:22px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.35);background:#071a07;position:relative;">
+    <button onclick="closePopup()" style="position:absolute;top:10px;right:12px;background:rgba(0,0,0,0.4);border:none;color:white;width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;z-index:10;line-height:1;">✕</button>
+    <div style="min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:url('/images/banner.png') center/cover no-repeat;">
+      <div style="width:40px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);margin:8px auto 0;"></div>
+    </div>
+    <div style="background:white;padding:8px 20px 16px;">
+      <div style="position:relative;z-index:5;margin:-30px auto 0;width:120px;height:120px;">
+        <img src="/images/shazz-logo.png" style="width:120px;height:120px;object-fit:contain;filter:brightness(0) saturate(100%) invert(22%) sepia(80%) saturate(600%) hue-rotate(95deg) brightness(85%);"/>
+      </div>
+      <div id="popup-pct" style="margin-top:-25px;font-size:1.3rem;font-weight:900;line-height:1;background:linear-gradient(135deg,#c9a84c,#f0d080,#c9a84c);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:popupShimmer 2.5s linear infinite;text-align:center;margin-bottom:2px;">10% OFF</div>
+      <div style="color:#888;font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;text-align:center;">Your First Order</div>
+      <h3 style="font-size:0.88rem;color:#1b5e20;font-weight:700;margin-bottom:10px;text-align:center;">Register to Claim Your Discount</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <input id="popup-name" type="text" placeholder="Full Name" style="padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;outline:none;font-family:inherit;color:#333;background:#fafafa;width:100%;"/>
+        <input id="popup-mobile" type="tel" placeholder="Mobile" style="padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;outline:none;font-family:inherit;color:#333;background:#fafafa;width:100%;"/>
+      </div>
+      <input id="popup-email" type="email" placeholder="Email Address" style="width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
+      <input id="popup-address" type="text" placeholder="Delivery Address" style="width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
+      <input id="popup-pincode" type="text" placeholder="Pincode" style="width:120px;padding:9px 12px;border:1.5px solid #eee;border-radius:10px;font-size:0.82rem;margin-bottom:8px;outline:none;font-family:inherit;color:#333;background:#fafafa;"/>
+      <button onclick="submitPopup()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0d1f0d,#1b5e20);color:white;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);">🎉 Claim My 10% Discount</button>
+      <div onclick="closePopup()" style="text-align:center;margin-top:8px;font-size:0.65rem;color:#aaa;cursor:pointer;">No thanks, I'll pay full price</div>
+    </div>
+  </div>
+</div>
+<style>
+  @keyframes popupShimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+</style>
+<script>
+  (function(){
+    if (localStorage.getItem('szPopupDone')) return;
+    setTimeout(function(){
+      var o = document.getElementById('welcome-popup-overlay');
+      o.style.display = 'flex';
+    }, 2000);
+  })();
+
+  function closePopup() {
+    document.getElementById('welcome-popup-overlay').style.display = 'none';
+    localStorage.setItem('szPopupDone','1');
+  }
+
+  async function submitPopup() {
+    const name    = document.getElementById('popup-name').value.trim();
+    const mobile  = document.getElementById('popup-mobile').value.trim();
+    const email   = document.getElementById('popup-email').value.trim();
+    const address = document.getElementById('popup-address').value.trim();
+    const pincode = document.getElementById('popup-pincode').value.trim();
+    if (!name || !mobile) { alert('Please enter your name and mobile.'); return; }
+    await fetch('/api/popup-register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name, mobile, email, address, pincode })
+    });
+    localStorage.setItem('szPopupDone','1');
+    document.getElementById('welcome-popup').innerHTML = '<div style="padding:40px;text-align:center;background:white;"><div style="font-size:2rem;margin-bottom:10px;">🎉</div><div style="font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:6px;">You\'re registered!</div><div style="font-size:0.85rem;color:#666;">Your 10% discount will be applied automatically on your first order.</div><button onclick="closePopup()" style="margin-top:18px;padding:10px 28px;background:#1b5e20;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:700;">Shop Now</button></div>';
+  }
+</script>
 </body>
 </html>
